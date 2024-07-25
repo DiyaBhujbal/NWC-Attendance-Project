@@ -208,19 +208,21 @@ const AttendanceSheet = () => {
         user, // Send user info in the request body
         attendance,
       };
-
-      if (!token) {
+      console.log("no token",token);
+      // if (!token) {
+        console.log("inside if",token);
         // Make an API call & get the JWT token using userId
-        const response = (
+        const response1 = (
           await axios.post(`http://localhost:5000/api-v1/token/generate`, {
-            userId: user.id,
+            userId: user._id,
           })
         ).data;
-        token = response.token;
-      }
-
+        token = response1.token;
+      // }
+     
       console.log("Request Payload:", payload); // Log the payload to debug
-
+console.log("response 1",response1)
+console.log("new no token",token);
       const response = await axios.post(
         `http://localhost:5000/api-v1/daily-record/add-attendance-entry`,
         payload,
