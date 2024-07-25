@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect } from 'react';
 // import axios from 'axios';
 // import { useParams } from 'react-router-dom';
@@ -140,13 +139,9 @@
 
 // export default AttendanceSheet;
 
-
-
-
-
-import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
 import "./AttendanceSheetcopy.css";
 
 const AttendanceSheet = () => {
@@ -159,7 +154,9 @@ const AttendanceSheet = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api-v1/class/${classId}/students-list`);
+        const response = await axios.get(
+          `http://localhost:5000/api-v1/class/${classId}/students-list`
+        );
         console.log(response.data); // Log the response data to debug
         if (response.data.success) {
           const fetchedStudents = response.data.studentsList;
@@ -170,10 +167,10 @@ const AttendanceSheet = () => {
           }, {});
           setAttendance(initialAttendance);
         } else {
-          console.error('Failed to fetch students:', response.data.message);
+          console.error("Failed to fetch students:", response.data.message);
         }
       } catch (error) {
-        console.error('Error fetching students:', error);
+        console.error("Error fetching students:", error);
       }
     };
     fetchStudents();
@@ -183,12 +180,12 @@ const AttendanceSheet = () => {
     const handleBeforeUnload = (event) => {
       if (hasUnsavedChanges) {
         event.preventDefault();
-        event.returnValue = ''; // This is needed for Chrome
+        event.returnValue = ""; // This is needed for Chrome
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
   const handleCheckboxChange = (rollNumber) => {
@@ -204,16 +201,26 @@ const AttendanceSheet = () => {
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('token'); // Assuming the token is stored in localStorage
-      const user = JSON.parse(localStorage.getItem('user')); // Assuming the user info is stored in localStorage
-  
+      let token = localStorage.getItem("token"); // Assuming the token is stored in localStorage
+      const user = JSON.parse(localStorage.getItem("user")); // Assuming the user info is stored in localStorage
+
       const payload = {
         user, // Send user info in the request body
         attendance,
       };
-  
-      console.log('Request Payload:', payload); // Log the payload to debug
-  
+
+      if (!token) {
+        // Make an API call & get the JWT token using userId
+        const response = (
+          await axios.post(`http://localhost:5000/api-v1/token/generate`, {
+            userId: user.id,
+          })
+        ).data;
+        token = response.token;
+      }
+
+      console.log("Request Payload:", payload); // Log the payload to debug
+
       const response = await axios.post(
         `http://localhost:5000/api-v1/daily-record/add-attendance-entry`,
         payload,
@@ -223,22 +230,25 @@ const AttendanceSheet = () => {
           },
         }
       );
-  
+
       console.log(response.data); // Log the response data to debug
       if (response.data.success) {
-        alert('Attendance saved successfully');
+        alert("Attendance saved successfully");
       } else {
-        console.error('Failed to save attendance:', response.data.message);
+        console.error("Failed to save attendance:", response.data.message);
       }
     } catch (error) {
-      console.error('Error saving attendance:', error);
+      console.error("Error saving attendance:", error);
     }
   };
-  
 
   const handleNavigateAway = (path) => {
     if (hasUnsavedChanges) {
-      if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
+      if (
+        window.confirm(
+          "You have unsaved changes. Are you sure you want to leave?"
+        )
+      ) {
         navigate(path);
       }
     } else {
@@ -274,12 +284,11 @@ const AttendanceSheet = () => {
           </tbody>
         </table>
       </div>
-      <button className="save-button" onClick={handleSave}>Save</button>
-     
+      <button className="save-button" onClick={handleSave}>
+        Save
+      </button>
     </div>
   );
 };
 
 export default AttendanceSheet;
-
-
