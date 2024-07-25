@@ -1,0 +1,44 @@
+/* Navbar.css */
+
+.navbar {
+    width: 100%;
+    height: 64px; /* Adjust the height as needed */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgb(118, 144, 230); /* Blue 600 color */
+    color: #fff;
+    padding: 0 16px;
+}
+
+.navbar__toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.navbar__toggle i {
+    margin-right: 8px;
+}
+
+.navbar__title {
+    font-size: 1.25rem; /* Adjust the font size as needed */
+}
+
+.navbar__user {
+    display: flex;
+    align-items: center;
+}
+
+.navbar__user i {
+    margin-right: 16px;
+}
+
+.navbar__logout {
+    cursor: pointer;
+    margin-left: 16px;
+}
+
+.navbar__logout:hover {
+    text-decoration: none;
+}
