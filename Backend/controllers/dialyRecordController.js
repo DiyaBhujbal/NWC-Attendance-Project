@@ -200,19 +200,19 @@ export const addAttendanceEntry = async (req, res, next) => {
       return res.status(400).json({ message: "User information is required" });
     }
 
-    const { userId } = req.body.user;
+    const { teacherId } = req.body.user;
     const { attendanceEntry } = req.body;
 
-    if (!userId || !attendanceEntry) {
-      console.log('Missing required fields', { userId, attendanceEntry }); // Additional logging
+    if (!teacherId || !attendanceEntry) {
+      console.log('Missing required fields', { teacherId, attendanceEntry }); // Additional logging
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    console.log('Looking for teacher with userId:', userId); // Log the userId
+    console.log('Looking for teacher with userId:', teacherId); // Log the userId
 
-    const teacher = await Teacher.findById(userId);
+    const teacher = await Teacher.findById(teacherId);
     if (!teacher) {
-      console.log('Teacher not found', { userId }); // Additional logging
+      console.log('Teacher not found', { teacherId }); // Additional logging
       return res.status(404).json({ message: "Teacher not found" });
     }
 

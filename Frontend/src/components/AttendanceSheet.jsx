@@ -80,7 +80,7 @@ const AttendanceSheet = () => {
   
     
       const payload = {
-        user:{ userId: teacherId }, // Send user info in the request body
+        user:{  teacherId }, // Send user info in the request body
         attendanceEntry:attendance,
       };
       console.log("no token",token);

@@ -35,7 +35,7 @@ const TeacherLoginPage = () => {
   //     console.error('Login failed', err);
   //     setError(err.response?.data.message || 'An error occurred during login');
   //   }
-  // };
+  //};
 
   const handleSubmit = async (event) => {
     event.preventDefault();
