@@ -3,33 +3,70 @@ import './TeacherLoginPage.css';
 import { CollegeImage, CollegeLogo } from '../assets'; // Ensure these paths are correct
 import Popup from './popup';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
 
 const TeacherLoginPage = () => {
+ 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [token, setToken] = useState(null);
+  const navigate = useNavigate();
+  
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
 
+  //   try {
+  //     const response = await axios.post('http://localhost:5000/api-v1/auth/login', { email, password });
+
+  //     if (response.data.success) {
+  //       const token = response.data.token;
+  //       localStorage.setItem('token', token); // Save user data
+  //       console.log("token saved to local storage:", token);
+  //       setToken(token); // Set the token in the state
+  //       setShowPopup(true); // Show the popup on successful login
+  //       localStorage.setItem('teacherId', user.teacherId); 
+  //     }
+  //   } catch (err) {
+  //     console.error('Login failed', err);
+  //     setError(err.response?.data.message || 'An error occurred during login');
+  //   }
+  // };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+  
     try {
-      const response = await axios.post('http://localhost:5000/api-v1/auth/login', { email, password });
-
-      if (response.data.success) {
-        const token = response.data.token;
-        localStorage.setItem('token', token); // Save user data
-        console.log("token saved to local storage:", token);
-        setToken(token); // Set the token in the state
-        setShowPopup(true); // Show the popup on successful login
+      const response = await axios.post('http://localhost:5000/api-v1/auth/login', {
+        email,
+        password,
+      });
+  
+      console.log('Login Response:', response.data); // Log the response data to debug
+  
+      const {teacher, token } = response.data;
+  
+      if (!teacher ||!teacher._id) {
+        console.error("teacherId is missing in the user object",teacher);
+        return;
       }
-    } catch (err) {
-      console.error('Login failed', err);
-      setError(err.response?.data.message || 'An error occurred during login');
+  
+      localStorage.setItem('user', JSON.stringify(teacher));
+      localStorage.setItem('token', token);
+      localStorage.setItem('teacherId', teacher._id); // Store teacherId
+      setShowPopup(true); // Show the popup on successful login
+  
+      // Redirect or update state
+    } catch (error) {
+      console.error('Login failed:', error);
     }
   };
+  
+
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -37,9 +74,9 @@ const TeacherLoginPage = () => {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    if (token) {
-      window.location.href = '/home-page'; // Redirect after closing the popup
-    }
+   
+      navigate( '/home-page'); // Redirect after closing the popup
+   
   };
 
   return (

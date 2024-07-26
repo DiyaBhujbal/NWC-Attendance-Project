@@ -45,14 +45,14 @@ TeacherSchema.pre("save", async function () {
 });
 
 //compare password
-TeacherSchema.methods.comparePassword = async function (userPassword) {
-  const isMatch = await bcrypt.compare(userPassword, this.password);
+TeacherSchema.methods.comparePassword = async function (teacherPassword) {
+  const isMatch = await bcrypt.compare(teacherPassword, this.password);
   return isMatch;
 };
 
 //JSON WEBTOKEN
 TeacherSchema.methods.createJWT = function () {
-  return JWT.sign({ userId: this._id }, process.env.JWT_SECRET_KEY, {
+  return JWT.sign({ teacherId: this._id }, process.env.JWT_SECRET_KEY, {
     expiresIn: "1d",
   });
 };

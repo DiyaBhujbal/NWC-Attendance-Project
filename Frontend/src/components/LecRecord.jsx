@@ -654,50 +654,134 @@ const LecForm = () => {
     navigate(`/attendance-sheet/${selectedClass}`);
   };
 
-  const handleSave = async (event) => {
-    const token = localStorage.getItem('token'); // Assuming the token is stored in localStorage
-      const user = JSON.parse(localStorage.getItem('user')); // Assuming the user info is stored in localStorage
-    event.preventDefault();
+  // const handleSave = async (event) => {
+  //   const token = localStorage.getItem('token'); // Assuming the token is stored in localStorage
+  //     const user = JSON.parse(localStorage.getItem('user')); // Assuming the user info is stored in localStorage
+  //   event.preventDefault();
 
-    if (!date || !day || !time || !selectedClass || !selectedSubject) {
-      alert('Please fill in all required fields.');
-      return;
-    }
+  //   if (!date || !day || !time || !selectedClass || !selectedSubject) {
+  //     alert('Please fill in all required fields.');
+  //     return;
+  //   }
 
-    // Proceed with the save logic
-    const data = {
-      userId,
-      date,
-      day,
-      time,
-      className: selectedClass,
-      subject: selectedSubject,
-      periodNo,
-      roomNo,
-      remark,
-      totalStudentsPresent: totalStudents
-    };
+  //   // Proceed with the save logic
+  //   const data = {
+  //     userId,
+  //     date,
+  //     day,
+  //     time,
+  //     className: selectedClass,
+  //     subject: selectedSubject,
+  //     periodNo,
+  //     roomNo,
+  //     remark,
+  //     totalStudentsPresent: totalStudents
+  //   };
 
-    console.log('Data to be saved:', data);
+  //   console.log('Data to be saved:', data);
     
-    try {
-      const response = await axios.post('http://localhost:5000/api-v1/daily-record/add-daily-record', data, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+  //   try {
+  //     const response = await axios.post('http://localhost:5000/api-v1/daily-record/add-daily-record', data, {
+  //       headers: {
+  //         'Authorization': `Bearer ${token}`
+  //       }
+  //     });
 
-      if (response.data.success) {
-        alert('Record saved successfully');
-        // Optionally, navigate to another page or reset the form
-      } else {
-        alert('Failed to save the record');
+  //     if (response.data.success) {
+  //       alert('Record saved successfully');
+  //       // Optionally, navigate to another page or reset the form
+  //     } else {
+  //       alert('Failed to save the record');
+  //     }
+  //   } catch (error) {
+  //     console.error('Failed to save the record:', error);
+  //     alert('An error occurred while saving the record');
+  //   }
+  // };
+
+  const handleSave = async () => {
+    try {
+      let token = localStorage.getItem("token"); // Assuming the token is stored in localStorage
+      const user = JSON.parse(localStorage.getItem("user")); // Assuming the user info is stored in localStorage
+      const teacherId = localStorage.getItem("teacherId");
+
+      if (!user) {
+        console.error("User not found in localStorage");
+        return;
       }
-    } catch (error) {
-      console.error('Failed to save the record:', error);
-      alert('An error occurred while saving the record');
-    }
-  };
+  
+      if (!teacherId) {
+        console.error("teacherId not found in localStorage");
+        return;
+      }
+  
+      console.log("Retrieved user:", user);
+      console.log("Retrieved teacherId:", teacherId);
+  
+    
+      const payload = {
+        user:{ userId: teacherId }, // Send user info in the request body
+        attendanceEntry:attendance,
+      };
+      console.log("no token",token);
+      // if (!token) {
+        console.log("inside if",token);
+        // Make an API call & get the JWT token using userId
+        const response1 = (
+          await axios.post(`http://localhost:5000/api-v1/token/generate`, {
+            teacherId: user._id,
+          })
+        ).data;
+        token = response1.token;
+      // }
+     
+      console.log("Request Payload:", payload); // Log the payload to debug
+      console.log("response 1",response1)
+      console.log("new no token",token);
+      console.log("Request Headers:", {
+        Authorization: `Bearer ${token}`,
+      });
+      const response = await axios.post(
+        `http://localhost:5000/api-v1/daily-record/add-daily-record`, data,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Response Data:",response.data); // Log the response data to debug
+      if (response.data.success) {
+        alert("Attendance saved successfully");
+      } else {
+        console.error("Failed to save attendance:", response.data.message);
+      }
+      } catch (error) {
+      //     console.error("Error saving attendance:", error);
+      //   }
+      // };
+      if (error.response) {
+      console.error("Error Response Data:", error.response.data);
+      console .error("Error Response Status:", error.response.status);
+      console.error("Error Response Headers:", error.response.headers);
+      } else {
+      console.error("Error Message:", error.message);
+      }
+      }
+      };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   return (
     <div>

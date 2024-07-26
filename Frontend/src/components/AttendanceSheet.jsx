@@ -1,143 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
-// import { useParams } from 'react-router-dom';
-// import "./AttendanceSheetcopy.css";
-
-// const AttendanceSheet = () => {
-//   const { classId } = useParams();
-//   const [students, setStudents] = useState([]);
-//   const [dates, setDates] = useState(['2023-07-01', '2023-07-02']); // Initial dates for demo
-//   const [attendance, setAttendance] = useState({});
-
-//   useEffect(() => {
-//     const fetchStudents = async () => {
-//       try {
-//         const response = await axios.get(`http://localhost:5000/api-v1/class/${classId}/students-list`);
-//         console.log(response.data); // Log the response data to debug
-//         if (response.data.success) {
-//           const fetchedStudents = response.data.studentsList;
-//           setStudents(fetchedStudents);
-//           const initialAttendance = fetchedStudents.reduce((acc, student) => {
-//             acc[student.roll_no] = dates.reduce((dateAcc, date) => {
-//               dateAcc[date] = false;
-//               return dateAcc;
-//             }, {});
-//             return acc;
-//           }, {});
-//           setAttendance(initialAttendance);
-//         } else {
-//           console.error('Failed to fetch students:', response.data.message);
-//         }
-//       } catch (error) {
-//         console.error('Error fetching students:', error);
-//       }
-//     };
-//     fetchStudents();
-//   }, [classId, dates]);
-
-//   useEffect(() => {
-//     console.log('Students:', students);
-//   }, [students]);
-
-//   useEffect(() => {
-//     console.log('Attendance:', attendance);
-//   }, [attendance]);
-
-//   const handleCheckboxChange = (rollNumber, date) => {
-//     setAttendance((prevState) => ({
-//       ...prevState,
-//       [rollNumber]: {
-//         ...prevState[rollNumber],
-//         [date]: !prevState[rollNumber][date],
-//       },
-//     }));
-//   };
-
-//   const addDate = () => {
-//     const newDate = prompt('Enter a new date (YYYY-MM-DD):');
-//     if (newDate && !dates.includes(newDate)) {
-//       setDates([...dates, newDate]);
-//       setAttendance((prevState) => {
-//         const updatedAttendance = { ...prevState };
-//         Object.keys(updatedAttendance).forEach((rollNumber) => {
-//           updatedAttendance[rollNumber][newDate] = false;
-//         });
-//         return updatedAttendance;
-//       });
-//     }
-//   };
-
-//   const addStudent = () => {
-//     const rollNumber = prompt('Enter roll number:');
-//     const name = prompt('Enter name:');
-//     if (rollNumber && name) {
-//       const newStudent = { roll_no: rollNumber, student_name: name };
-//       setStudents([...students, newStudent]);
-//       setAttendance((prevState) => ({
-//         ...prevState,
-//         [rollNumber]: dates.reduce((dateAcc, date) => {
-//           dateAcc[date] = false;
-//           return dateAcc;
-//         }, {}),
-//       }));
-//     }
-//   };
-
-//   const handleSave = async () => {
-//     try {
-//       const response = await axios.post(`http://localhost:5000/api-v1/daily-record/add-attendance-entry`, {
-//         attendance,
-//         dates,
-//       });
-//       console.log(response.data); // Log the response data to debug
-//       if (response.data.success) {
-//         alert('Attendance saved successfully');
-//       } else {
-//         console.error('Failed to save attendance:', response.data.message);
-//       }
-//     } catch (error) {
-//       console.error('Error saving attendance:', error);
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <button onClick={addDate}>Add Date</button>
-//       <button onClick={addStudent}>Add Student</button>
-//       <table border="1">
-//         <thead>
-//           <tr>
-//             <th>Roll Number</th>
-//             <th>Name</th>
-//             {dates.map((date) => (
-//               <th key={date}>{date}</th>
-//             ))}
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {students.map((student) => (
-//             <tr key={student.roll_no}>
-//               <td>{student.roll_no}</td>
-//               <td>{student.student_name}</td>
-//               {dates.map((date) => (
-//                 <td key={date}>
-//                   <input
-//                     type="checkbox"
-//                     checked={attendance[student.roll_no] ? attendance[student.roll_no][date] : false}
-//                     onChange={() => handleCheckboxChange(student.roll_no, date)}
-//                   />
-//                 </td>
-//               ))}
-//             </tr>
-//           ))}
-//         </tbody>
-//       </table>
-//       <button onClick={handleSave}>Save</button>
-//     </div>
-//   );
-// };
-
-// export default AttendanceSheet;
 
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
@@ -203,10 +63,25 @@ const AttendanceSheet = () => {
     try {
       let token = localStorage.getItem("token"); // Assuming the token is stored in localStorage
       const user = JSON.parse(localStorage.getItem("user")); // Assuming the user info is stored in localStorage
+      const teacherId = localStorage.getItem("teacherId");
 
+      if (!user) {
+        console.error("User not found in localStorage");
+        return;
+      }
+  
+      if (!teacherId) {
+        console.error("teacherId not found in localStorage");
+        return;
+      }
+  
+      console.log("Retrieved user:", user);
+      console.log("Retrieved teacherId:", teacherId);
+  
+    
       const payload = {
-        user, // Send user info in the request body
-        attendance,
+        user:{ userId: teacherId }, // Send user info in the request body
+        attendanceEntry:attendance,
       };
       console.log("no token",token);
       // if (!token) {
@@ -214,7 +89,7 @@ const AttendanceSheet = () => {
         // Make an API call & get the JWT token using userId
         const response1 = (
           await axios.post(`http://localhost:5000/api-v1/token/generate`, {
-            userId: user._id,
+            teacherId: user._id,
           })
         ).data;
         token = response1.token;
@@ -223,7 +98,12 @@ const AttendanceSheet = () => {
       console.log("Request Payload:", payload); // Log the payload to debug
 console.log("response 1",response1)
 console.log("new no token",token);
-      const response = await axios.post(
+console.log("Request Headers:", {
+  Authorization: `Bearer ${token}`,
+});
+// console.log("id",userId);
+
+     const response = await axios.post(
         `http://localhost:5000/api-v1/daily-record/add-attendance-entry`,
         payload,
         {
@@ -232,17 +112,25 @@ console.log("new no token",token);
           },
         }
       );
-
-      console.log(response.data); // Log the response data to debug
+      console.log("Response Data:",response.data); // Log the response data to debug
       if (response.data.success) {
         alert("Attendance saved successfully");
       } else {
         console.error("Failed to save attendance:", response.data.message);
       }
     } catch (error) {
-      console.error("Error saving attendance:", error);
-    }
-  };
+  //     console.error("Error saving attendance:", error);
+  //   }
+  // };
+  if (error.response) {
+    console.error("Error Response Data:", error.response.data);
+    console .error("Error Response Status:", error.response.status);
+    console.error("Error Response Headers:", error.response.headers);
+  } else {
+    console.error("Error Message:", error.message);
+  }
+}
+};
 
   const handleNavigateAway = (path) => {
     if (hasUnsavedChanges) {

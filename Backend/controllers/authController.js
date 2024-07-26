@@ -39,7 +39,7 @@ export const register = async (req, res, next) => {
       message: "Account created successfully",
       teacher: {
         _id: teacher._id,
-        username: teacher.firstName,
+        username: teacher.username,
         email: teacher.email,
       },
       token,
