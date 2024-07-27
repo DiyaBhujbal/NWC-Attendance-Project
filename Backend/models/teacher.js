@@ -27,7 +27,7 @@ const dailyRecordSchema = new mongoose.Schema({
 const TeacherSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true , validate:validator.isEmail},
-  password: { type: String, required: true , minlenght:[8,"passowrd must be at 8 characters"]},
+  password: { type: String, required: true , minlenght:[8,"password must be at 8 characters"]},
   dailyRecord: [dailyRecordSchema] // Array of daily records
 
 },

@@ -25,10 +25,24 @@ import Class from "../models/class.js";
 
 
 export const addDailyRecord = async (req, res) => {
-  const { userId, date, day, time, className, subject, periodNo, roomNo, remark, totalStudentsPresent } = req.body;
-
+ console.log('Request Body:', JSON.stringify(req.body, null, 2)); // Log the request body to debug
+ 
   try {
-    const teacher = await Teacher.findById(userId);
+    if (!req.body.user) {
+      return res.status(400).json({ message: "User information is required" });
+    }
+    const { teacherId} = req.body.user;
+    const {  date, day, time, className, subject, periodNo, roomNo, remark, totalStudentsPresent,attendanceEntry } = req.body;
+    
+    
+    if (!teacherId ) {
+      console.log('Missing required fields',  teacherId ); // Additional logging
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    console.log('Looking for teacher with userId:', teacherId); // Log the userId
+    
+    const teacher = await Teacher.findById(teacherId);
     if (!teacher) {
       return res.status(404).json({ message: "Teacher not found" });
     }
@@ -42,7 +56,8 @@ export const addDailyRecord = async (req, res) => {
       period_number: periodNo,
       room_number: roomNo,
       remark,
-      total_students_present: totalStudentsPresent
+      total_students_present: totalStudentsPresent,
+      attendance: attendanceEntry,
     };
 
     teacher.dailyRecord.push(newRecord);
@@ -218,7 +233,7 @@ export const addAttendanceEntry = async (req, res, next) => {
 
     const newRecord = {
       date: new Date(),
-      attendance: [attendanceEntry],
+      attendance:  attendanceEntry,
     };
 
     teacher.dailyRecord.push(newRecord);

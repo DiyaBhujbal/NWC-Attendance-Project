@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "./AttendanceSheetcopy.css";
@@ -10,22 +9,23 @@ const AttendanceSheet = () => {
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const { selectedClass } = useParams();
 
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:5000/api-v1/class/${classId}/students-list`
-        );
-        console.log(response.data); // Log the response data to debug
+        const response = await axios.get(`http://localhost:5000/api-v1/class/${classId}/students-list`);
         if (response.data.success) {
           const fetchedStudents = response.data.studentsList;
           setStudents(fetchedStudents);
           const initialAttendance = fetchedStudents.reduce((acc, student) => {
-            acc[student.roll_no] = false; // Initialize with false
+            acc[student.roll_no] = false;
             return acc;
           }, {});
           setAttendance(initialAttendance);
+          const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
+          savedAttendance[selectedClass] = initialAttendance;
+          sessionStorage.setItem("attendance", JSON.stringify(savedAttendance));
         } else {
           console.error("Failed to fetch students:", response.data.message);
         }
@@ -34,13 +34,13 @@ const AttendanceSheet = () => {
       }
     };
     fetchStudents();
-  }, [classId]);
+  }, [classId, selectedClass]);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
       if (hasUnsavedChanges) {
         event.preventDefault();
-        event.returnValue = ""; // This is needed for Chrome
+        event.returnValue = "";
       }
     };
 
@@ -52,93 +52,35 @@ const AttendanceSheet = () => {
     setAttendance((prevState) => {
       const newAttendance = {
         ...prevState,
-        [rollNumber]: !prevState[rollNumber], // Toggle attendance status
+        [rollNumber]: !prevState[rollNumber],
       };
-      setHasUnsavedChanges(true); // Set flag to true when changes are made
+      setHasUnsavedChanges(true);
+      const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
+      savedAttendance[selectedClass] = newAttendance;
+      sessionStorage.setItem("attendance", JSON.stringify(savedAttendance));
       return newAttendance;
     });
   };
 
-  const handleSave = async () => {
-    try {
-      let token = localStorage.getItem("token"); // Assuming the token is stored in localStorage
-      const user = JSON.parse(localStorage.getItem("user")); // Assuming the user info is stored in localStorage
-      const teacherId = localStorage.getItem("teacherId");
+  const handleSave = () => {
+    const formattedAttendance = Object.keys(attendance)
+      .filter((rollNo) => attendance[rollNo]) // Only include entries with status true
+      .map((rollNo) => ({
+        roll_no: parseInt(rollNo, 10),
+        status: attendance[rollNo],
+      }));
 
-      if (!user) {
-        console.error("User not found in localStorage");
-        return;
-      }
-  
-      if (!teacherId) {
-        console.error("teacherId not found in localStorage");
-        return;
-      }
-  
-      console.log("Retrieved user:", user);
-      console.log("Retrieved teacherId:", teacherId);
-  
-    
-      const payload = {
-        user:{  teacherId }, // Send user info in the request body
-        attendanceEntry:attendance,
-      };
-      console.log("no token",token);
-      // if (!token) {
-        console.log("inside if",token);
-        // Make an API call & get the JWT token using userId
-        const response1 = (
-          await axios.post(`http://localhost:5000/api-v1/token/generate`, {
-            teacherId: user._id,
-          })
-        ).data;
-        token = response1.token;
-      // }
-     
-      console.log("Request Payload:", payload); // Log the payload to debug
-console.log("response 1",response1)
-console.log("new no token",token);
-console.log("Request Headers:", {
-  Authorization: `Bearer ${token}`,
-});
-// console.log("id",userId);
-
-     const response = await axios.post(
-        `http://localhost:5000/api-v1/daily-record/add-attendance-entry`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log("Response Data:",response.data); // Log the response data to debug
-      if (response.data.success) {
-        alert("Attendance saved successfully");
-      } else {
-        console.error("Failed to save attendance:", response.data.message);
-      }
-    } catch (error) {
-  //     console.error("Error saving attendance:", error);
-  //   }
-  // };
-  if (error.response) {
-    console.error("Error Response Data:", error.response.data);
-    console .error("Error Response Status:", error.response.status);
-    console.error("Error Response Headers:", error.response.headers);
-  } else {
-    console.error("Error Message:", error.message);
-  }
-}
-};
+    const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
+    savedAttendance[selectedClass] = formattedAttendance;
+    sessionStorage.setItem("attendance", JSON.stringify(savedAttendance));
+    setHasUnsavedChanges(false);
+    alert("Attendance saved temporarily.");
+    navigate(-1); // Navigate back to the LecForm component
+  };
 
   const handleNavigateAway = (path) => {
     if (hasUnsavedChanges) {
-      if (
-        window.confirm(
-          "You have unsaved changes. Are you sure you want to leave?"
-        )
-      ) {
+      if (window.confirm("You have unsaved changes. Are you sure you want to leave?")) {
         navigate(path);
       }
     } else {

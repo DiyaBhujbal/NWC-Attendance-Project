@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LecRecord.css';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import axios from 'axios';
-
+import { AttendanceContext } from './AttendanceContext';
+import './AttendanceSheet'
 const LecForm = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [date, setDate] = useState('');
@@ -18,15 +19,26 @@ const LecForm = () => {
   const [roomNo, setRoomNo] = useState('');
   const [remark, setRemark] = useState('');
   const [totalStudents, setTotalStudents] = useState('');
-  const [token, setToken] = useState(null);
-  localStorage.setItem('token', token); // Save user data
-  console.log("token saved to local storage:", token);
-  const userId = localStorage.getItem('userId'); // Assuming userId is stored in local storage
   const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
   };
+
+  useEffect(() => {
+    const savedFormData = JSON.parse(sessionStorage.getItem("lecFormData"));
+    if (savedFormData) {
+      setDate(savedFormData.date || '');
+      setDay(savedFormData.day || '');
+      setSelectedClass(savedFormData.selectedClass || '');
+      setSelectedSubject(savedFormData.selectedSubject || '');
+      setTime(savedFormData.time || '');
+      setPeriodNo(savedFormData.periodNo || '');
+      setRoomNo(savedFormData.roomNo || '');
+      setRemark(savedFormData.remark || '');
+      setTotalStudents(savedFormData.totalStudents || '');
+    }
+  }, []);
 
   useEffect(() => {
     if (date) {
@@ -42,7 +54,6 @@ const LecForm = () => {
     const fetchClasses = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api-v1/class/get-all-classes');
-        console.log('Fetched classes:', response.data); // Log the data to debug
         if (response.data.success && Array.isArray(response.data.classes)) {
           setClasses(response.data.classes);
         } else {
@@ -60,7 +71,6 @@ const LecForm = () => {
       if (selectedClass) {
         try {
           const response = await axios.get(`http://localhost:5000/api-v1/class/${selectedClass}/subjects`);
-          console.log('Fetched subjects:', response.data); // Log the data to debug
           if (response.data.success && Array.isArray(response.data.subjects)) {
             setSubjects(response.data.subjects);
           } else {
@@ -111,137 +121,76 @@ const LecForm = () => {
       alert('Please select both class and subject before proceeding.');
       return;
     }
+    const lecFormData = {
+      date,
+      day,
+      time,
+      selectedClass,
+      periodNo,
+      selectedSubject,
+      roomNo,
+      remark,
+      totalStudents,
+    };
+    sessionStorage.setItem("lecFormData", JSON.stringify(lecFormData));
     navigate(`/attendance-sheet/${selectedClass}`);
   };
 
-  // const handleSave = async (event) => {
-  //   const token = localStorage.getItem('token'); // Assuming the token is stored in localStorage
-  //     const user = JSON.parse(localStorage.getItem('user')); // Assuming the user info is stored in localStorage
-  //   event.preventDefault();
-
-  //   if (!date || !day || !time || !selectedClass || !selectedSubject) {
-  //     alert('Please fill in all required fields.');
-  //     return;
-  //   }
-
-  //   // Proceed with the save logic
-  //   const data = {
-  //     userId,
-  //     date,
-  //     day,
-  //     time,
-  //     className: selectedClass,
-  //     subject: selectedSubject,
-  //     periodNo,
-  //     roomNo,
-  //     remark,
-  //     totalStudentsPresent: totalStudents
-  //   };
-
-  //   console.log('Data to be saved:', data);
-    
-  //   try {
-  //     const response = await axios.post('http://localhost:5000/api-v1/daily-record/add-daily-record', data, {
-  //       headers: {
-  //         'Authorization': `Bearer ${token}`
-  //       }
-  //     });
-
-  //     if (response.data.success) {
-  //       alert('Record saved successfully');
-  //       // Optionally, navigate to another page or reset the form
-  //     } else {
-  //       alert('Failed to save the record');
-  //     }
-  //   } catch (error) {
-  //     console.error('Failed to save the record:', error);
-  //     alert('An error occurred while saving the record');
-  //   }
-  // };
-
-  const handleSave = async () => {
+  const handleSave = async (event) => {
+    event.preventDefault();
+  
     try {
-      let token = localStorage.getItem("token"); // Assuming the token is stored in localStorage
-      const user = JSON.parse(localStorage.getItem("user")); // Assuming the user info is stored in localStorage
+      const lecFormData = JSON.parse(sessionStorage.getItem("lecFormData"));
+      const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
+      const selectedClassAttendance = savedAttendance[lecFormData.class] || [];
+      const formattedAttendance = selectedClassAttendance.map((entry) => ({
+        roll_no: entry.roll_no,
+        status: entry.status,
+      }));
+  
+      let token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user"));
       const teacherId = localStorage.getItem("teacherId");
-
-      if (!user) {
-        console.error("User not found in localStorage");
+  
+      if (!user || !teacherId) {
+        console.error("User or teacherId not found in localStorage");
         return;
       }
   
-      if (!teacherId) {
-        console.error("teacherId not found in localStorage");
-        return;
-      }
+      //if (!token) {
+        const response1 = await axios.post(`http://localhost:5000/api-v1/token/generate`, { teacherId: user._id });
+        token = response1.data.token;
+        localStorage.setItem("token", token);
+     // }
   
-      console.log("Retrieved user:", user);
-      console.log("Retrieved teacherId:", teacherId);
-  
-    
-      const payload = {
-        user:{ userId: teacherId }, // Send user info in the request body
-        attendanceEntry:attendance,
+      const data = {
+        ...lecFormData,
+        attendanceEntry: formattedAttendance,
+        user: { teacherId },
       };
-      console.log("no token",token);
-      // if (!token) {
-        console.log("inside if",token);
-        // Make an API call & get the JWT token using userId
-        const response1 = (
-          await axios.post(`http://localhost:5000/api-v1/token/generate`, {
-            teacherId: user._id,
-          })
-        ).data;
-        token = response1.token;
-      // }
-     
-      console.log("Request Payload:", payload); // Log the payload to debug
-      console.log("response 1",response1)
-      console.log("new no token",token);
-      console.log("Request Headers:", {
-        Authorization: `Bearer ${token}`,
-      });
+  
       const response = await axios.post(
-        `http://localhost:5000/api-v1/daily-record/add-daily-record`, data,
-        payload,
+        `http://localhost:5000/api-v1/daily-record/add-daily-record`,
+        data,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      console.log("Response Data:",response.data); // Log the response data to debug
+  
       if (response.data.success) {
-        alert("Attendance saved successfully");
+        alert("Daily record saved successfully");
+        sessionStorage.removeItem("attendance");
+        sessionStorage.removeItem("lecFormData");
       } else {
-        console.error("Failed to save attendance:", response.data.message);
+        console.error("Failed to save daily record:", response.data.message);
       }
-      } catch (error) {
-      //     console.error("Error saving attendance:", error);
-      //   }
-      // };
-      if (error.response) {
-      console.error("Error Response Data:", error.response.data);
-      console .error("Error Response Status:", error.response.status);
-      console.error("Error Response Headers:", error.response.headers);
-      } else {
-      console.error("Error Message:", error.message);
-      }
-      }
-      };
-
-
-
-
-
-
-
-
-
-
-
-
-
+    } catch (error) {
+      console.error("Error saving daily record:", error.response ? error.response.data : error.message);
+    }
+  };
+  
 
   return (
     <div>
@@ -301,7 +250,7 @@ const LecForm = () => {
             <input type="number" id="totalStudents" name="totalStudents" value={totalStudents} onChange={handleTotalStudentsChange} />
           </div>
           <div className="form-group">
-            <button type="button" className="mark-attendance-button" onClick={handleAttendanceClick}> Mark Attendance</button>
+            <button type="button" className="mark-attendance-button" onClick={handleAttendanceClick}>Mark Attendance</button>
           </div>
           <div className="form-group full-width">
             <button type="submit" className="save-button">Save</button>
@@ -313,6 +262,8 @@ const LecForm = () => {
 };
 
 export default LecForm;
+
+
 
 //-----------------------------------------------------Trial Changes------------------------------------------------
 
