@@ -22,6 +22,7 @@ const App = () => {
         <Route path="/classes" element={<Classes/>} />
         <Route path="/daily-lec-report" element={<LecRecord/>} />
         <Route path="/attendance-sheet/:classId" element={<AttendanceSheet />} />
+        
         {/* Add more routes as needed */}
       </Routes>
       </AttendanceProvider>

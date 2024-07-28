@@ -7,10 +7,10 @@ const dailyRecordSchema = new mongoose.Schema({
   day:{ type: String },
   date: { type: Date },
   time: { type: String }, // You can use Date type if storing time in a different format
+  className: { type: String },
   subject: { type: String },
   room_number: { type: String },
   period_number: { type: Number },
-  className: { type: String },
   remark: { type: String },
   total_students_present:{type:Number},
   attendance:[

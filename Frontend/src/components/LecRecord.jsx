@@ -20,6 +20,8 @@ const LecForm = () => {
   const [remark, setRemark] = useState('');
   const [totalStudents, setTotalStudents] = useState('');
   const navigate = useNavigate();
+  const [selectedClassName, setSelectedClassName] = useState('');
+
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -89,9 +91,14 @@ const LecForm = () => {
   };
 
   const handleClassChange = (event) => {
-    setSelectedClass(event.target.value);
+    const classId = event.target.value;
+    setSelectedClass(classId);
+  
+    const selectedClass = classes.find(cls => cls._id === classId);
+    setSelectedClassName(selectedClass ? selectedClass.name : '');
   };
-
+  
+  
   const handleSubjectChange = (event) => {
     setSelectedSubject(event.target.value);
   };
@@ -125,6 +132,7 @@ const LecForm = () => {
       date,
       day,
       time,
+      selectedClassName,
       selectedClass,
       periodNo,
       selectedSubject,
@@ -143,6 +151,13 @@ const LecForm = () => {
       const lecFormData = JSON.parse(sessionStorage.getItem("lecFormData"));
       const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
       const selectedClassAttendance = savedAttendance[lecFormData.class] || [];
+      
+  // Check if attendance data is available
+  if (selectedClassAttendance.length === 0) {
+    alert("Please mark attendance before saving the form.");
+    return; // Prevent the form from being submitted
+  }
+
       const formattedAttendance = selectedClassAttendance.map((entry) => ({
         roll_no: entry.roll_no,
         status: entry.status,
@@ -161,10 +176,13 @@ const LecForm = () => {
         const response1 = await axios.post(`http://localhost:5000/api-v1/token/generate`, { teacherId: user._id });
         token = response1.data.token;
         localStorage.setItem("token", token);
-     // }
+      //}
   
       const data = {
         ...lecFormData,
+        className: lecFormData.selectedClassName, // Use the class name here
+        subject: lecFormData.selectedSubject,
+
         attendanceEntry: formattedAttendance,
         user: { teacherId },
       };
@@ -224,7 +242,7 @@ const LecForm = () => {
           </div>
           <div className="form-group">
             <label htmlFor="periodNo">Period no:</label>
-            <input type="number" id="periodNo" name="periodNo" value={periodNo} onChange={handlePeriodNoChange} />
+            <input type="number" id="periodNo" name="periodNo" value={periodNo} onChange={handlePeriodNoChange} required />
           </div>
           <div className="form-group">
             <label htmlFor="subject">Subject:</label>
@@ -239,15 +257,15 @@ const LecForm = () => {
           </div>
           <div className="form-group">
             <label htmlFor="roomNo">Room no:</label>
-            <input type="text" id="roomNo" name="roomNo" value={roomNo} onChange={handleRoomNoChange} />
+            <input type="text" id="roomNo" name="roomNo" value={roomNo} onChange={handleRoomNoChange}  required/>
           </div>
           <div className="form-group">
             <label htmlFor="remark">Remark:</label>
-            <textarea id="remark" name="remark" rows="2" value={remark} onChange={handleRemarkChange} />
+            <textarea id="remark" name="remark" rows="2" value={remark} onChange={handleRemarkChange}  required/>
           </div>
           <div className="form-group">
             <label htmlFor="totalStudents">Total Students Present:</label>
-            <input type="number" id="totalStudents" name="totalStudents" value={totalStudents} onChange={handleTotalStudentsChange} />
+            <input type="number" id="totalStudents" name="totalStudents" value={totalStudents} onChange={handleTotalStudentsChange}  required/>
           </div>
           <div className="form-group">
             <button type="button" className="mark-attendance-button" onClick={handleAttendanceClick}>Mark Attendance</button>
@@ -264,366 +282,4 @@ const LecForm = () => {
 export default LecForm;
 
 
-
-//-----------------------------------------------------Trial Changes------------------------------------------------
-
-
-
-// import React, { useState, useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import './LecRecord.css';
-// import Navbar from './Navbar';
-// import Sidebar from './Sidebar';
-// import axios from 'axios';
-// import AttendanceSheet from './AttendanceSheet';
-
-
-// const LecForm = () => {
-//   const [isSidebarOpen, setSidebarOpen] = useState(false);
-//   const [date, setDate] = useState('');
-//   const [day, setDay] = useState('');
-//   const [classes, setClasses] = useState([]);
-//   const [subjects, setSubjects] = useState([]);
-//   const [selectedClass, setSelectedClass] = useState('');
-//   const [selectedSubject, setSelectedSubject] = useState('');
-//   const [time, setTime] = useState('');
-//   const [periodNo, setPeriodNo] = useState('');
-//   const [roomNo, setRoomNo] = useState('');
-//   const [remark, setRemark] = useState('');
-//   const [totalStudents, setTotalStudents] = useState('');
-//   const [token, setToken] = useState(null);
-//   const userId = localStorage.getItem('userId'); // Assuming userId is stored in local storage
-//   const navigate = useNavigate();
-//   localStorage.setItem('token', token); // Save user data
-//   console.log("token saved to local storage:", token);
-  
-
-//   const toggleSidebar = () => {
-//     setSidebarOpen(!isSidebarOpen);
-//   };
-
-//   useEffect(() => {
-//     if (date) {
-//       const dateObj = new Date(date);
-//       const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-//       setDay(daysOfWeek[dateObj.getUTCDay()]);
-//     } else {
-//       setDay('');
-//     }
-//   }, [date]);
-
-//   useEffect(() => {
-//     const fetchClasses = async () => {
-//       try {
-//         const response = await axios.get('http://localhost:5000/api-v1/class/get-all-classes');
-//         console.log('Fetched classes:', response.data); // Log the data to debug
-//         if (response.data.success && Array.isArray(response.data.classes)) {
-//           setClasses(response.data.classes);
-//         } else {
-//           console.error('Fetched classes is not an array:', response.data);
-//         }
-//       } catch (error) {
-//         console.error('Failed to fetch classes:', error);
-//       }
-//     };
-//     fetchClasses();
-//   }, []);
-
-//   useEffect(() => {
-//     const fetchSubjects = async () => {
-//       if (selectedClass) {
-//         try {
-//           const response = await axios.get(`http://localhost:5000/api-v1/class/${selectedClass}/subjects`);
-//           console.log('Fetched subjects:', response.data); // Log the data to debug
-//           if (response.data.success && Array.isArray(response.data.subjects)) {
-//             setSubjects(response.data.subjects);
-//           } else {
-//             console.error('Fetched subjects is not an array:', response.data);
-//           }
-//         } catch (error) {
-//           console.error('Failed to fetch subjects:', error);
-//         }
-//       }
-//     };
-//     fetchSubjects();
-//   }, [selectedClass]);
-
-//   const handleDateChange = (event) => {
-//     setDate(event.target.value);
-//   };
-
-//   const handleClassChange = (event) => {
-//     setSelectedClass(event.target.value);
-//   };
-
-//   const handleSubjectChange = (event) => {
-//     setSelectedSubject(event.target.value);
-//   };
-
-//   const handleTimeChange = (event) => {
-//     setTime(event.target.value);
-//   };
-
-//   const handlePeriodNoChange = (event) => {
-//     setPeriodNo(event.target.value);
-//   };
-
-//   const handleRoomNoChange = (event) => {
-//     setRoomNo(event.target.value);
-//   };
-
-//   const handleRemarkChange = (event) => {
-//     setRemark(event.target.value);
-//   };
-
-//   const handleTotalStudentsChange = (event) => {
-//     setTotalStudents(event.target.value);
-//   };
-
-//   const handleAttendanceClick = () => {
-//     if (!selectedClass || !selectedSubject) {
-//       alert('Please select both class and subject before proceeding.');
-//       return;
-//     }
-    
-//   navigate(`/attendance-sheet/${selectedClass}`, {
-//     state: {
-//       date,
-//       day,
-//       time,
-//       className: selectedClass,
-//       subject: selectedSubject,
-//       periodNo, // Make sure to use periodNo
-//       roomNo,
-//       remark,
-//       totalStudentsPresent: totalStudents,
-//     }
-//   });
-//   };
-
-  
-
-
-
-//   // const handleSave = async (event) => {
-//   //   const token = localStorage.getItem('token'); // Assuming the token is stored in localStorage
-//   //     const user = JSON.parse(localStorage.getItem('user')); // Assuming the user info is stored in localStorage
-//   //   event.preventDefault();
-
-//   //   if (!date || !day || !time || !selectedClass || !selectedSubject) {
-//   //     alert('Please fill in all required fields.');
-//   //     return;
-//   //   }
-
-//   //   // Proceed with the save logic
-//   //   const data = {
-//   //     userId,
-//   //     date,
-//   //     day,
-//   //     time,
-//   //     className: selectedClass,
-//   //     subject: selectedSubject,
-//   //     periodNo,
-//   //     roomNo,
-//   //     remark,
-//   //     totalStudentsPresent: totalStudents
-//   //   };
-
-//   //   console.log('Data to be saved:', data);
-    
-//   //   try {
-//   //     const response = await axios.post('http://localhost:5000/api-v1/daily-record/add-daily-record', data, {
-//   //       headers: {
-//   //         'Authorization': `Bearer ${token}`
-//   //       }
-//   //     });
-
-//   //     if (response.data.success) {
-//   //       alert('Record saved successfully');
-//   //       // Optionally, navigate to another page or reset the form
-//   //     } else {
-//   //       alert('Failed to save the record');
-//   //     }
-//   //   } catch (error) {
-//   //     console.error('Failed to save the record:', error);
-//   //     alert('An error occurred while saving the record');
-//   //   }
-//   // };
-
-//   const handleSave = async () => {
-//     try {
-//       let token = localStorage.getItem("token"); // Assuming the token is stored in localStorage
-//       const user = JSON.parse(localStorage.getItem("user")); // Assuming the user info is stored in localStorage
-//       const teacherId = localStorage.getItem("teacherId");
-
-//       // if (!user) {
-//       //   console.error("User not found in localStorage");
-//       //   return;
-//       // }
-  
-//       // if (!teacherId) {
-//       //   console.error("teacherId not found in localStorage");
-//       //   return;
-//       // }
-  
-//       // console.log("Retrieved user:", user);
-//       // console.log("Retrieved teacherId:", teacherId);
-  
-    
-//       // const payload = {
-//       //   user:{ userId: teacherId }, // Send user info in the request body
-//       //   attendanceEntry:attendance,
-//       // };
-//       // console.log("no token",token);
-//       // // if (!token) {
-//       //   console.log("inside if",token);
-//       //   // Make an API call & get the JWT token using userId
-//       //   const response1 = (
-//       //     await axios.post(`http://localhost:5000/api-v1/token/generate`, {
-//       //       teacherId: user._id,
-//       //     })
-//       //   ).data;
-//       //   token = response1.token;
-//       // // }
-     
-//       // console.log("Request Payload:", payload); // Log the payload to debug
-//       // console.log("response 1",response1)
-//       // console.log("new no token",token);
-//       // console.log("Request Headers:", {
-//       //   Authorization: `Bearer ${token}`,
-//       // });
-
-
-//       if (!date || !day || !time || !selectedClass || !selectedSubject) {
-//         alert('Please fill in all required fields.');
-//         return;
-//       }
-  
-//       const data = {
-//         userId: teacherId,
-//         date,
-//         day,
-//         time,
-//         className: selectedClass,
-//         subject: selectedSubject,
-//         periodNo,
-//         roomNo,
-//         remark,
-//         totalStudentsPresent: totalStudents,
-//         attendanceEntry: attendanceData // Include attendance data
-//       };
-  
-//       const response = await axios.post(
-//         `http://localhost:5000/api-v1/daily-record/add-daily-record`, data,
-//         payload,
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//           },
-//         }
-//       );
-//       console.log("Response Data:",response.data); // Log the response data to debug
-//       if (response.data.success) {
-//         alert("Attendance saved successfully");
-//       } else {
-//         console.error("Failed to save attendance:", response.data.message);
-//       }
-//       } catch (error) {
-//       //     console.error("Error saving attendance:", error);
-//       //   }
-//       // };
-//       if (error.response) {
-//       console.error("Error Response Data:", error.response.data);
-//       console .error("Error Response Status:", error.response.status);
-//       console.error("Error Response Headers:", error.response.headers);
-//       } else {
-//       console.error("Error Message:", error.message);
-//       }
-//       }
-//       };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//   return (
-//     <div>
-//       <Navbar toggleSidebar={toggleSidebar} />
-//       <h2>Daily Lecture Record</h2>
-//       <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-    
-//       <div className="form-container">
-//         <form className="lec-form" onSubmit={handleSave}>
-//           <div className="form-group">
-//             <label htmlFor="date">Date:</label>
-//             <input type="date" id="date" name="date" value={date} onChange={handleDateChange} required />
-//           </div>
-//           <div className="form-group">
-//             <label htmlFor="day">Day:</label>
-//             <input type="text" id="day" name="day" value={day} readOnly />
-//           </div>
-//           <div className="form-group">
-//             <label htmlFor="time">Time:</label>
-//             <input type="time" id="time" name="time" value={time} onChange={handleTimeChange} required />
-//           </div>
-//           <div className="form-group">
-//             <label htmlFor="class">Class:</label>
-//             <select id="class" name="class" value={selectedClass} onChange={handleClassChange} required>
-//               <option value="">Select class</option>
-//               {classes.map((cls) => (
-//                 <option key={cls._id} value={cls._id}>
-//                   {cls.name}
-//                 </option>
-//               ))}
-//             </select>
-//           </div>
-//           <div className="form-group">
-//             <label htmlFor="periodNo">Period no:</label>
-//             <input type="number" id="periodNo" name="periodNo" value={periodNo} onChange={handlePeriodNoChange} />
-//           </div>
-//           <div className="form-group">
-//             <label htmlFor="subject">Subject:</label>
-//             <select id="subject" name="subject" value={selectedSubject} onChange={handleSubjectChange} required>
-//               <option value="">Select subject</option>
-//               {subjects.map((sub, index) => (
-//                 <option key={index} value={sub}>
-//                   {sub}
-//                 </option>
-//               ))}
-//             </select>
-//           </div>
-//           <div className="form-group">
-//             <label htmlFor="roomNo">Room no:</label>
-//             <input type="text" id="roomNo" name="roomNo" value={roomNo} onChange={handleRoomNoChange} />
-//           </div>
-//           <div className="form-group">
-//             <label htmlFor="remark">Remark:</label>
-//             <textarea id="remark" name="remark" rows="2" value={remark} onChange={handleRemarkChange} />
-//           </div>
-//           <div className="form-group">
-//             <label htmlFor="totalStudents">Total Students Present:</label>
-//             <input type="number" id="totalStudents" name="totalStudents" value={totalStudents} onChange={handleTotalStudentsChange} />
-//           </div>
-//           <div className="form-group">
-//             <button type="button" className="mark-attendance-button" onClick={handleAttendanceClick}> Mark Attendance</button>
-//           </div>
-//           <div className="form-group full-width">
-//             <button type="submit" className="save-button">Save</button>
-//           </div>
-//         </form>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default LecForm;
 

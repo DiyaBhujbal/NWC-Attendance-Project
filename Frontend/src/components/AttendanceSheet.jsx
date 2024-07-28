@@ -74,7 +74,8 @@ const AttendanceSheet = () => {
     savedAttendance[selectedClass] = formattedAttendance;
     sessionStorage.setItem("attendance", JSON.stringify(savedAttendance));
     setHasUnsavedChanges(false);
-    alert("Attendance saved temporarily.");
+   console.log("Attendance marked!:", formattedAttendance); // Add this line
+  alert("Attendance marked!");
     navigate(-1); // Navigate back to the LecForm component
   };
 
