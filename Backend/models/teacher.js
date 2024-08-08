@@ -28,6 +28,7 @@ const TeacherSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true , validate:validator.isEmail},
   password: { type: String, required: true , minlenght:[8,"password must be at 8 characters"]},
+  isVerified: {type: Boolean,default: false},
   dailyRecord: [dailyRecordSchema] // Array of daily records
 
 },

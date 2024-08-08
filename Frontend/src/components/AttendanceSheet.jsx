@@ -9,23 +9,40 @@ const AttendanceSheet = () => {
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const { selectedClass } = useParams();
 
   useEffect(() => {
+        // Check for token in session storage
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+          alert("Your session has expired. Please log in again.");
+          sessionStorage.clear();
+          navigate('/teacher-login'); // Redirect to login page
+          return;
+        }
+    
+      
     const fetchStudents = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api-v1/class/${classId}/students-list`);
         if (response.data.success) {
           const fetchedStudents = response.data.studentsList;
           setStudents(fetchedStudents);
+
           const initialAttendance = fetchedStudents.reduce((acc, student) => {
             acc[student.roll_no] = false;
             return acc;
           }, {});
+
           setAttendance(initialAttendance);
+
+          // Load existing attendance data from session storage, if any
           const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
-          savedAttendance[selectedClass] = initialAttendance;
-          sessionStorage.setItem("attendance", JSON.stringify(savedAttendance));
+          if (savedAttendance[classId]) {
+            setAttendance(savedAttendance[classId]);
+          } else {
+            savedAttendance[classId] = initialAttendance;
+            sessionStorage.setItem("attendance", JSON.stringify(savedAttendance));
+          }
         } else {
           console.error("Failed to fetch students:", response.data.message);
         }
@@ -33,8 +50,9 @@ const AttendanceSheet = () => {
         console.error("Error fetching students:", error);
       }
     };
+
     fetchStudents();
-  }, [classId, selectedClass]);
+  }, [classId]);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -55,9 +73,12 @@ const AttendanceSheet = () => {
         [rollNumber]: !prevState[rollNumber],
       };
       setHasUnsavedChanges(true);
+
+      // Update session storage
       const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
-      savedAttendance[selectedClass] = newAttendance;
+      savedAttendance[classId] = newAttendance;
       sessionStorage.setItem("attendance", JSON.stringify(savedAttendance));
+
       return newAttendance;
     });
   };
@@ -71,11 +92,12 @@ const AttendanceSheet = () => {
       }));
 
     const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
-    savedAttendance[selectedClass] = formattedAttendance;
+    savedAttendance[classId] = formattedAttendance;
     sessionStorage.setItem("attendance", JSON.stringify(savedAttendance));
     setHasUnsavedChanges(false);
-   console.log("Attendance marked!:", formattedAttendance); // Add this line
-  alert("Attendance marked!");
+    
+    console.log("Attendance marked!:", formattedAttendance);
+    alert("Attendance marked!");
     navigate(-1); // Navigate back to the LecForm component
   };
 

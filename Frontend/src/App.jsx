@@ -8,7 +8,8 @@ import Classes from './components/classes';
 import LecRecord from './components/LecRecord';
 import AttendanceSheet from './components/AttendanceSheet';
 import { AttendanceProvider } from './components/AttendanceContext';
-
+import EmailVerificationPage from './components/EmailVerificationPage';
+import ForgotPassword from './components/ForgotPassword';
 
 const App = () => {
   return (
@@ -18,11 +19,13 @@ const App = () => {
         <Route path="/" element={<MainPage />} />
         <Route path="/teacher-login" element={<TeacherLoginPage />} />
         <Route path="/teacher-registration" element={<TeacherRegisterPage/>} />
+        <Route path="/verify-email" element={<EmailVerificationPage />} />
+        <Route path="/forgot-pass" element={<ForgotPassword />} />
         <Route path="/home-page" element={<Home />} />
         <Route path="/classes" element={<Classes/>} />
         <Route path="/daily-lec-report" element={<LecRecord/>} />
         <Route path="/attendance-sheet/:classId" element={<AttendanceSheet />} />
-        
+       
         {/* Add more routes as needed */}
       </Routes>
       </AttendanceProvider>

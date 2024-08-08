@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LecRecord.css';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import axios from 'axios';
-import { AttendanceContext } from './AttendanceContext';
-import './AttendanceSheet'
+
 const LecForm = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [date, setDate] = useState('');
@@ -22,12 +21,21 @@ const LecForm = () => {
   const navigate = useNavigate();
   const [selectedClassName, setSelectedClassName] = useState('');
 
-
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
   };
 
   useEffect(() => {
+    // Check for token in session storage
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      alert("Your session has expired. Please log in again.");
+      sessionStorage.clear();
+      navigate('/teacher-login'); // Redirect to login page
+      return;
+    }
+
+    // Retrieve and populate form data if available
     const savedFormData = JSON.parse(sessionStorage.getItem("lecFormData"));
     if (savedFormData) {
       setDate(savedFormData.date || '');
@@ -39,6 +47,7 @@ const LecForm = () => {
       setRoomNo(savedFormData.roomNo || '');
       setRemark(savedFormData.remark || '');
       setTotalStudents(savedFormData.totalStudents || '');
+      setSelectedClassName(savedFormData.selectedClassName || '');
     }
   }, []);
 
@@ -93,12 +102,11 @@ const LecForm = () => {
   const handleClassChange = (event) => {
     const classId = event.target.value;
     setSelectedClass(classId);
-  
-    const selectedClass = classes.find(cls => cls._id === classId);
-    setSelectedClassName(selectedClass ? selectedClass.name : '');
+
+    const selectedClassObj = classes.find(cls => cls._id === classId);
+    setSelectedClassName(selectedClassObj ? selectedClassObj.name : '');
   };
-  
-  
+
   const handleSubjectChange = (event) => {
     setSelectedSubject(event.target.value);
   };
@@ -144,70 +152,78 @@ const LecForm = () => {
     navigate(`/attendance-sheet/${selectedClass}`);
   };
 
+  const decodeToken = (token) => {
+    if (!token) return null;
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => 
+      `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`).join(''));
+    return JSON.parse(jsonPayload);
+  };
+
   const handleSave = async (event) => {
     event.preventDefault();
-  
+
     try {
-      const lecFormData = JSON.parse(sessionStorage.getItem("lecFormData"));
-      const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
-      const selectedClassAttendance = savedAttendance[lecFormData.class] || [];
-      
-  // Check if attendance data is available
-  if (selectedClassAttendance.length === 0) {
-    alert("Please mark attendance before saving the form.");
-    return; // Prevent the form from being submitted
-  }
+        const lecFormData = JSON.parse(sessionStorage.getItem("lecFormData"));
+        const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
+        const selectedClassAttendance = savedAttendance[lecFormData.selectedClass] || [];
 
-      const formattedAttendance = selectedClassAttendance.map((entry) => ({
-        roll_no: entry.roll_no,
-        status: entry.status,
-      }));
-  
-      let token = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user"));
-      const teacherId = localStorage.getItem("teacherId");
-  
-      if (!user || !teacherId) {
-        console.error("User or teacherId not found in localStorage");
-        return;
-      }
-  
-      //if (!token) {
-        const response1 = await axios.post(`http://localhost:5000/api-v1/token/generate`, { teacherId: user._id });
-        token = response1.data.token;
-        localStorage.setItem("token", token);
-      //}
-  
-      const data = {
-        ...lecFormData,
-        className: lecFormData.selectedClassName, // Use the class name here
-        subject: lecFormData.selectedSubject,
-
-        attendanceEntry: formattedAttendance,
-        user: { teacherId },
-      };
-  
-      const response = await axios.post(
-        `http://localhost:5000/api-v1/daily-record/add-daily-record`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        if (selectedClassAttendance.length === 0) {
+          alert("Please mark attendance before saving the form.");
+          return;
         }
-      );
-  
-      if (response.data.success) {
-        alert("Daily record saved successfully");
-        sessionStorage.removeItem("attendance");
-        sessionStorage.removeItem("lecFormData");
-      } else {
-        console.error("Failed to save daily record:", response.data.message);
-      }
+
+        const formattedAttendance = selectedClassAttendance.map((entry) => ({
+            roll_no: entry.roll_no,
+            status: entry.status,
+        }));
+
+        const token = sessionStorage.getItem("token");
+
+        if (!token) {
+            console.error("Token not found in sessionStorage");
+            return;
+        }
+
+        const decodedToken = decodeToken(token);
+        const teacherId = decodedToken?.id;
+
+        if (!teacherId) {
+            console.error("Failed to decode token or retrieve teacher ID");
+            return;
+        }
+
+        const data = {
+          ...lecFormData,
+          className: lecFormData.selectedClassName, // Use the class name here
+          subject: lecFormData.selectedSubject,
+          attendanceEntry: formattedAttendance,
+          user: { teacherId },
+        };
+
+        const saveResponse = await axios.post(
+            `http://localhost:5000/api-v1/daily-record/add-daily-record`,
+            data,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        if (saveResponse.data.success) {
+            alert("Daily record saved successfully");
+            sessionStorage.removeItem("attendance");
+            sessionStorage.removeItem("lecFormData");
+        } else {
+            console.error("Failed to save daily record:", saveResponse.data.message);
+        }
     } catch (error) {
-      console.error("Error saving daily record:", error.response ? error.response.data : error.message);
+        console.error("Error saving daily record:", error.response ? error.response.data : error.message);
     }
   };
+
   
 
   return (
@@ -280,6 +296,5 @@ const LecForm = () => {
 };
 
 export default LecForm;
-
 
 

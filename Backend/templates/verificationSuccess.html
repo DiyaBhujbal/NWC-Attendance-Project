@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Verified Successfully</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; }
+    .message-card { max-width: 600px; margin: 50px auto; padding: 20px; border-radius: 5px; border: 1px solid #28a745; color: #28a745; }
+    button { background: #007bff; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="message-card">
+    <h3>{{message}}</h3>
+    <button id="redirectButton">Ok</button>
+  </div>
+  <script>
+    document.getElementById('redirectButton').addEventListener('click', function() {
+      window.location.href = 'http://localhost:5173/teacher-login';
+    });
+  </script>
+</body>
+</html>
+
+

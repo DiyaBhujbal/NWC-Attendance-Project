@@ -1,19 +1,26 @@
 import React from 'react';
 import axios from 'axios';
 import './Navbar.css'; // Adjust the path if needed
-
+import { useNavigate } from 'react-router-dom';
 const Navbar = ({ toggleSidebar}) => {
  
+  const navigate = useNavigate();
 
 
 
 
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.href = '/teacher-login'; // Redirect to login or home page
+
+
+  const handleLogout = async () => {
+    try {
+      await axios.post('http://localhost:5000/api-v1/auth/logout');
+      sessionStorage.clear();
+      navigate('/teacher-login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
   };
-
 
 
 

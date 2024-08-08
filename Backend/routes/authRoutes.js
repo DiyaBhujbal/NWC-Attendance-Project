@@ -1,7 +1,8 @@
 import express from "express";
 import { rateLimit } from "express-rate-limit";
-import { login, logout, register,getCurrentUser } from "../controllers/authController.js";
+import { login, logout, register,getCurrentUser,verifyEmail,resendVerificationEmail} from "../controllers/authController.js";
 import userAuth from '../middleware/authMiddleware.js'; // Middleware to authenticate the token
+
 //ip rate limit
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -16,7 +17,10 @@ const router = express.Router();
 router.post("/register", limiter, register);
 router.post("/login", login);
 router.post("/logout", logout);
-// Add this route
-router.get('/me', userAuth, getCurrentUser);
+router.get('/me', getCurrentUser);
+router.post("/verify-email",verifyEmail);
+router.get("/verify-email",verifyEmail);
+router.post("/resend-verify-email",resendVerificationEmail);
+router.get("/resend-verify-email",resendVerificationEmail);
 
 export default router;

@@ -201,7 +201,7 @@ const TeacherRegisterPage = () => {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    window.location.href = '/home-page'; // Redirect after closing the popup
+    window.location.href = '/teacher-login'; // Redirect after closing the popup
   };
 
   return (
@@ -280,7 +280,7 @@ const TeacherRegisterPage = () => {
       </div>
       {showPopup && (
         <Popup
-          message="Registration successful! Redirecting to dashboard..."
+          message="Registration successful! Please check your email for verification link."
           onClose={handleClosePopup}
         />
       )}
