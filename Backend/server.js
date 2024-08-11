@@ -16,7 +16,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // Adjust as needed
+  origin: ['http://localhost:5173','http://localhost:5000'] // Adjust as needed
 }));
 app.use(express.json());
 app.use(mongoSanitize())

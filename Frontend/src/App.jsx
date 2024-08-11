@@ -4,12 +4,12 @@ import Home from './components/Home';
 import MainPage from './components/MainPage';
 import TeacherLoginPage from './components/TeacherLoginPage';
 import TeacherRegisterPage from './components/TeacherRegistrationPage';
-import Classes from './components/classes';
 import LecRecord from './components/LecRecord';
 import AttendanceSheet from './components/AttendanceSheet';
 import { AttendanceProvider } from './components/AttendanceContext';
 import EmailVerificationPage from './components/EmailVerificationPage';
 import ForgotPassword from './components/ForgotPassword';
+import AboutUs from './components/AboutUs';
 
 const App = () => {
   return (
@@ -22,10 +22,9 @@ const App = () => {
         <Route path="/verify-email" element={<EmailVerificationPage />} />
         <Route path="/forgot-pass" element={<ForgotPassword />} />
         <Route path="/home-page" element={<Home />} />
-        <Route path="/classes" element={<Classes/>} />
         <Route path="/daily-lec-report" element={<LecRecord/>} />
         <Route path="/attendance-sheet/:classId" element={<AttendanceSheet />} />
-       
+        <Route path="/about-us" element={<AboutUs />} />
         {/* Add more routes as needed */}
       </Routes>
       </AttendanceProvider>

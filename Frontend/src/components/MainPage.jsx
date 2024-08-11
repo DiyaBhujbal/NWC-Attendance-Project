@@ -23,17 +23,17 @@ const MainPage = () => {
         </div>
         <div className={`navbar-links ${menuOpen ? 'active' : ''}`}>
           <a href="/">Home</a>
-          <a href="/">Contact</a>
-          <a href="/">About Us</a>
+          {/* <a href="/">Contact</a> */}
+          <a href="/about-us">About Us</a>
         </div>
       </nav>
 
       <main className="App-main">
         <div className="module">
-          <a href="/" className="module-link">Admin Module</a>
+          <a href="/" className="module-link">Admin Login</a>
         </div>
         <div className="module">
-          <button onClick={handleTeacherModuleClick} className="module-link">Teacher Module</button>
+          <button onClick={handleTeacherModuleClick} className="module-link">Teacher Login</button>
         </div>
       </main>
     </div>

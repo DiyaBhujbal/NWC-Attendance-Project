@@ -4,12 +4,15 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate for redire
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import Welcome from './Welcome';
-import TeacherInfoCard from './TeacherInfoCard';
+
 
 const Home = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [token, setToken] = useState(null);
   const navigate = useNavigate(); // Initialize useNavigate
+// Retrieve the user data from sessionStorage
+const userData = JSON.parse(sessionStorage.getItem('user'));
+const username = userData ? userData.username : 'Guest'; // Default to 'Guest' if no user data
 
   useEffect(() => {
     const storedToken = sessionStorage.getItem('token');
@@ -43,9 +46,10 @@ const Home = () => {
       <Navbar toggleSidebar={toggleSidebar} />
       <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       <div className="flex-grow flex flex-col items-center justify-center bg-gray-100 p-4">
-        <Welcome />
-        {/* Optionally, you can pass the token to other components if needed */}
-        {/* <TeacherInfoCard token={token} /> */}
+        <div className="flex items-center space-x-4">
+          <Welcome name={username} />
+          
+        </div>
       </div>
     </div>
   );

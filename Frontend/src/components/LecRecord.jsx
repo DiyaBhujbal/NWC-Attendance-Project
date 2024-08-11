@@ -13,20 +13,21 @@ const LecForm = () => {
   const [subjects, setSubjects] = useState([]);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
-  const [time, setTime] = useState('');
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
   const [periodNo, setPeriodNo] = useState('');
   const [roomNo, setRoomNo] = useState('');
   const [remark, setRemark] = useState('');
   const [totalStudents, setTotalStudents] = useState('');
   const navigate = useNavigate();
   const [selectedClassName, setSelectedClassName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
   };
 
   useEffect(() => {
-    // Check for token in session storage
     const token = sessionStorage.getItem('token');
     if (!token) {
       alert("Your session has expired. Please log in again.");
@@ -42,12 +43,12 @@ const LecForm = () => {
       setDay(savedFormData.day || '');
       setSelectedClass(savedFormData.selectedClass || '');
       setSelectedSubject(savedFormData.selectedSubject || '');
-      setTime(savedFormData.time || '');
       setPeriodNo(savedFormData.periodNo || '');
       setRoomNo(savedFormData.roomNo || '');
       setRemark(savedFormData.remark || '');
       setTotalStudents(savedFormData.totalStudents || '');
       setSelectedClassName(savedFormData.selectedClassName || '');
+      setSelectedTimeSlots(savedFormData.selectedTimeSlots || []);
     }
   }, []);
 
@@ -95,6 +96,24 @@ const LecForm = () => {
     fetchSubjects();
   }, [selectedClass]);
 
+  useEffect(() => {
+    const fetchTimeSlots = async () => {
+      if (selectedClass) {
+        try {
+          const response = await axios.get(`http://localhost:5000/api-v1/class/${selectedClass}/time-slots`);
+          if (response.data.success && Array.isArray(response.data.timeSlots)) {
+            setTimeSlots(response.data.timeSlots);
+          } else {
+            console.error('Fetched time slots is not an array:', response.data);
+          }
+        } catch (error) {
+          console.error('Failed to fetch time slots:', error);
+        }
+      }
+    };
+    fetchTimeSlots();
+  }, [selectedClass]);
+
   const handleDateChange = (event) => {
     setDate(event.target.value);
   };
@@ -109,10 +128,6 @@ const LecForm = () => {
 
   const handleSubjectChange = (event) => {
     setSelectedSubject(event.target.value);
-  };
-
-  const handleTimeChange = (event) => {
-    setTime(event.target.value);
   };
 
   const handlePeriodNoChange = (event) => {
@@ -131,15 +146,23 @@ const LecForm = () => {
     setTotalStudents(event.target.value);
   };
 
+  const handleTimeSlotChange = (event) => {
+    const slot = event.target.value;
+    setSelectedTimeSlots(prevSlots =>
+      prevSlots.includes(slot) ? prevSlots.filter(s => s !== slot) : [...prevSlots, slot]
+    );
+  };
+
   const handleAttendanceClick = () => {
-    if (!selectedClass || !selectedSubject) {
-      alert('Please select both class and subject before proceeding.');
+    if (!date || !day || !selectedClass || !selectedSubject || !roomNo || !remark||!selectedTimeSlots.length === 0) {
+      alert('Please fill out all fields before marking attendance.');
       return;
     }
+
     const lecFormData = {
       date,
       day,
-      time,
+      time: selectedTimeSlots.join(', '), // Combine selected time slots
       selectedClassName,
       selectedClass,
       periodNo,
@@ -147,6 +170,7 @@ const LecForm = () => {
       roomNo,
       remark,
       totalStudents,
+      selectedTimeSlots, // Store selected time slots
     };
     sessionStorage.setItem("lecFormData", JSON.stringify(lecFormData));
     navigate(`/attendance-sheet/${selectedClass}`);
@@ -160,72 +184,92 @@ const LecForm = () => {
       `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`).join(''));
     return JSON.parse(jsonPayload);
   };
-
+  
   const handleSave = async (event) => {
     event.preventDefault();
-
+  
+    setIsLoading(true); // Set loading to true
+  
+    // Check if at least one time slot is selected
+    if (selectedTimeSlots.length === 0) {
+      alert("Please select at least one time slot before saving.");
+      setIsLoading(false); // Set loading to false
+      return;
+    }
+  
     try {
-        const lecFormData = JSON.parse(sessionStorage.getItem("lecFormData"));
-        const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
-        const selectedClassAttendance = savedAttendance[lecFormData.selectedClass] || [];
-
-        if (selectedClassAttendance.length === 0) {
-          alert("Please mark attendance before saving the form.");
-          return;
+      const lecFormData = JSON.parse(sessionStorage.getItem("lecFormData"));
+      
+      // Ensure lecFormData is not null and has required properties
+      if (!lecFormData || !lecFormData.selectedClass) {
+        alert("Please mark attendance before saving the form.");
+        setIsLoading(false); // Set loading to false
+        return;
+      }
+  
+      const savedAttendance = JSON.parse(sessionStorage.getItem("attendance")) || {};
+      const selectedClassAttendance = savedAttendance[lecFormData.selectedClass] || [];
+  
+      if (selectedClassAttendance.length === 0) {
+        alert("Please mark attendance before saving the form.");
+        setIsLoading(false); // Set loading to false
+        return;
+      }
+  
+      const formattedAttendance = selectedClassAttendance.map((entry) => ({
+        roll_no: entry.roll_no,
+        status: entry.status,
+      }));
+  
+      const token = sessionStorage.getItem("token");
+  
+      if (!token) {
+        console.error("Token not found in sessionStorage");
+        setIsLoading(false); // Set loading to false
+        return;
+      }
+  
+      const decodedToken = decodeToken(token);
+      const teacherId = decodedToken?.id;
+  
+      if (!teacherId) {
+        console.error("Failed to decode token or retrieve teacher ID");
+        setIsLoading(false); // Set loading to false
+        return;
+      }
+  
+      const data = {
+        ...lecFormData,
+        className: lecFormData.selectedClassName, // Use the class name here
+        subject: lecFormData.selectedSubject,
+        attendanceEntry: formattedAttendance,
+        user: { teacherId },
+      };
+  
+      const saveResponse = await axios.post(
+        `http://localhost:5000/api-v1/daily-record/add-daily-record`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-
-        const formattedAttendance = selectedClassAttendance.map((entry) => ({
-            roll_no: entry.roll_no,
-            status: entry.status,
-        }));
-
-        const token = sessionStorage.getItem("token");
-
-        if (!token) {
-            console.error("Token not found in sessionStorage");
-            return;
-        }
-
-        const decodedToken = decodeToken(token);
-        const teacherId = decodedToken?.id;
-
-        if (!teacherId) {
-            console.error("Failed to decode token or retrieve teacher ID");
-            return;
-        }
-
-        const data = {
-          ...lecFormData,
-          className: lecFormData.selectedClassName, // Use the class name here
-          subject: lecFormData.selectedSubject,
-          attendanceEntry: formattedAttendance,
-          user: { teacherId },
-        };
-
-        const saveResponse = await axios.post(
-            `http://localhost:5000/api-v1/daily-record/add-daily-record`,
-            data,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-
-        if (saveResponse.data.success) {
-            alert("Daily record saved successfully");
-            sessionStorage.removeItem("attendance");
-            sessionStorage.removeItem("lecFormData");
-        } else {
-            console.error("Failed to save daily record:", saveResponse.data.message);
-        }
+      );
+  
+      if (saveResponse.data.success) {
+        alert("Daily record saved successfully");
+        sessionStorage.removeItem("attendance");
+        sessionStorage.removeItem("lecFormData");
+      } else {
+        console.error("Failed to save daily record:", saveResponse.data.message);
+      }
     } catch (error) {
-        console.error("Error saving daily record:", error.response ? error.response.data : error.message);
+      console.error("Error saving daily record:", error.response ? error.response.data : error.message);
+    } finally {
+      setIsLoading(false); // Set loading to false once done
     }
   };
-
   
-
   return (
     <div>
       <Navbar toggleSidebar={toggleSidebar} />
@@ -241,10 +285,7 @@ const LecForm = () => {
             <label htmlFor="day">Day:</label>
             <input type="text" id="day" name="day" value={day} readOnly />
           </div>
-          <div className="form-group">
-            <label htmlFor="time">Time:</label>
-            <input type="time" id="time" name="time" value={time} onChange={handleTimeChange} required />
-          </div>
+          
           <div className="form-group">
             <label htmlFor="class">Class:</label>
             <select id="class" name="class" value={selectedClass} onChange={handleClassChange} required>
@@ -256,10 +297,7 @@ const LecForm = () => {
               ))}
             </select>
           </div>
-          <div className="form-group">
-            <label htmlFor="periodNo">Period no:</label>
-            <input type="number" id="periodNo" name="periodNo" value={periodNo} onChange={handlePeriodNoChange} required />
-          </div>
+         
           <div className="form-group">
             <label htmlFor="subject">Subject:</label>
             <select id="subject" name="subject" value={selectedSubject} onChange={handleSubjectChange} required>
@@ -271,24 +309,43 @@ const LecForm = () => {
               ))}
             </select>
           </div>
+
+          <div className="form-group">
+            <label htmlFor="time">Time:</label>
+            <div>
+              {timeSlots.map((slot, index) => (
+                <div key={index}>
+                  <input
+                    type="checkbox"
+                    id={`time-slot-${index}`}
+                    value={slot}
+                    checked={selectedTimeSlots.includes(slot)}
+                    onChange={handleTimeSlotChange}
+                  />
+                  <label htmlFor={`time-slot-${index}`}>{slot}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="form-group">
             <label htmlFor="roomNo">Room no:</label>
-            <input type="text" id="roomNo" name="roomNo" value={roomNo} onChange={handleRoomNoChange}  required/>
+            <input type="text" id="roomNo" name="roomNo" value={roomNo} onChange={handleRoomNoChange} required />
           </div>
           <div className="form-group">
             <label htmlFor="remark">Remark:</label>
-            <textarea id="remark" name="remark" rows="2" value={remark} onChange={handleRemarkChange}  required/>
+            <textarea id="remark" name="remark" rows="2" value={remark} onChange={handleRemarkChange} required />
           </div>
-          <div className="form-group">
-            <label htmlFor="totalStudents">Total Students Present:</label>
-            <input type="number" id="totalStudents" name="totalStudents" value={totalStudents} onChange={handleTotalStudentsChange}  required/>
-          </div>
+          
           <div className="form-group">
             <button type="button" className="mark-attendance-button" onClick={handleAttendanceClick}>Mark Attendance</button>
           </div>
           <div className="form-group full-width">
-            <button type="submit" className="save-button">Save</button>
+            <button type="submit" className="save-button" disabled={isLoading}>
+              {isLoading ? 'Saving...' : 'Save'}
+            </button>
           </div>
+          {isLoading && <div className="loading-spinner"></div>}
         </form>
       </div>
     </div>
@@ -296,5 +353,3 @@ const LecForm = () => {
 };
 
 export default LecForm;
-
-

@@ -186,18 +186,27 @@ export const resendVerificationEmail = async (req, res) => {
 //---------------------------------------------------------------------------------------------------------------------------------------
 
 
-// In your backend login route (e.g., authController.js)
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    // Find the teacher by email
     const teacher = await Teacher.findOne({ email });
 
-    if (!teacher || !await teacher.comparePassword(password)) {
+    // Check if the teacher exists and if the password is correct
+    if (!teacher || !await bcrypt.compare(password, teacher.password)) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
+    // Check if the email is verified
+    if (!teacher.isVerified) {
+      return res.status(401).json({ success: false, message: 'Email not verified' });
+    }
+
+    // Generate JWT token
     const token = JWT.sign({ id: teacher._id }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
 
+    // Send the response with the token and user data
     res.status(200).json({
       success: true,
       token,
