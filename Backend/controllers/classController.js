@@ -4,10 +4,10 @@ import Class from "../models/class.js";
 
 //create
 export const createClass = async (req, res, next) => {
-    const { name, subjects, totalStudents,studentsList } = req.body;
+    const { name, subjects, totalStudents,studentsList,timeSlot } = req.body;
   
     try {
-      const newClass = new Class({ name, studentsList, subjects, totalStudents });
+      const newClass = new Class({ name, studentsList, subjects, totalStudents,timeSlot });
       await newClass.save();
   
       res.status(201).json({ success: true, class: newClass });
@@ -51,12 +51,12 @@ export const createClass = async (req, res, next) => {
   // Update
   export const updateClass = async (req, res, next) => {
     const { classId } = req.params;
-    const { name, studentsList, subjects, totalStudents } = req.body;
+    const { name, studentsList, subjects, totalStudents, timeSlot } = req.body;
   
     try {
       const updatedClass = await Class.findByIdAndUpdate(
         classId,
-        { name, studentsList, subjects, totalStudents },
+        { name, studentsList, subjects ,timeSlot, totalStudents },
         { new: true, runValidators: true }
       );
   
@@ -119,5 +119,22 @@ export const  getStudentsByClassId=  async (req, res) => {
   } catch (error) {
     console.error('Error fetching students list:', error);
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// Fetch time slots by class ID
+export const getTimeSlotsByClassId = async (req, res) => {
+  const { classId } = req.params;
+
+  try {
+    const classItem = await Class.findById(classId).select('timeSlot'); // Fetch only the timeSlot field
+    if (!classItem) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    res.status(200).json({ success: true, timeSlots: classItem.timeSlot });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
   }
 };

@@ -15,9 +15,13 @@ dotenv.config();
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173','http://localhost:5000'] // Adjust as needed
+}));
 app.use(express.json());
 app.use(mongoSanitize())
+
+app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 
 // Routes
 app.use(router);

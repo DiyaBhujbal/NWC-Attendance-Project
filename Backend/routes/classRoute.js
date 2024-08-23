@@ -6,7 +6,8 @@ import {
   updateClass,
   deleteClass,
   getSubjectsByClassId,
-  getStudentsByClassId
+  getStudentsByClassId,
+  getTimeSlotsByClassId
 } from "../controllers/classController.js";
 
 const router = express.Router();
@@ -19,4 +20,5 @@ router.put("/update-class/:classId", updateClass);
 router.delete("/delete-class/:classId", deleteClass);
 router.get('/:classId/subjects', getSubjectsByClassId); // New route to fetch subjects
 router.get('/:classId/students-list', getStudentsByClassId)
+router.get("/:classId/time-slots", getTimeSlotsByClassId);
 export default router;
