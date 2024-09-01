@@ -1,28 +1,10 @@
 import mongoose from "mongoose";
 import Teacher from "../models/teacher.js";
 import Class from "../models/class.js";
+
+
+
 // Add a daily record
-// Add a daily record
-// export const addDailyRecord = async (req, res, next) => {
-//   const  userId  = req.body.user;
-//   const dailyRecord = req.body.dailyRecord;
-
-//   try {
-//     const teacher = await Teacher.findById(userId);
-//     if (!teacher) {
-//       return res.status(404).json({ message: "Teacher not found" });
-//     }
-
-//     teacher.dailyRecord.push(dailyRecord);
-//     await teacher.save();
-
-//     res.status(201).json({ success: true, dailyRecord });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
 
 export const addDailyRecord = async (req, res) => {
  console.log('Request Body:', JSON.stringify(req.body, null, 2)); // Log the request body to debug
@@ -76,11 +58,17 @@ export const addDailyRecord = async (req, res) => {
 
 // Update a daily record
 export const updateDailyRecord = async (req, res, next) => {
-  const { userId } = req.body.user;
-  const { recordId, updateData } = req.body;
+  console.log('Request Body:', JSON.stringify(req.body, null, 2)); // Log the request body to debug
 
   try {
-    const teacher = await Teacher.findById(userId);
+    if (!req.body.user) {
+      return res.status(400).json({ message: "User information is required" });
+    }
+    
+    const { teacherId } = req.body.user;
+    const { recordId, attendanceEntry, ...updateData } = req.body;
+
+    const teacher = await Teacher.findById(teacherId);
     if (!teacher) {
       return res.status(404).json({ message: "Teacher not found" });
     }
@@ -90,7 +78,12 @@ export const updateDailyRecord = async (req, res, next) => {
       return res.status(404).json({ message: "Daily record not found" });
     }
 
+    // Update the record with new data
     Object.assign(record, updateData);
+
+    // Update the attendance entry
+    record.attendance = attendanceEntry;
+
     await teacher.save();
 
     res.status(200).json({ success: true, dailyRecord: record });
@@ -100,13 +93,23 @@ export const updateDailyRecord = async (req, res, next) => {
   }
 };
 
-// Delete a daily record
-export const deleteDailyRecord = async (req, res, next) => {
-  const { userId } = req.body.user;
-  const { recordId } = req.body;
+
+
+// Delete a daily record by ID
+
+export const deleteDailyRecord = async (req, res) => {
+  console.log('Request Body:', JSON.stringify(req.body, null, 2)); // Log the request body to debug
 
   try {
-    const teacher = await Teacher.findById(userId);
+    const { teacherId } = req.body.user;
+    const { recordId} =req.body;
+
+    if (!teacherId || !recordId) {
+      console.log('Missing required fields:', { teacherId, recordId }); // Additional logging
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const teacher = await Teacher.findById(teacherId);
     if (!teacher) {
       return res.status(404).json({ message: "Teacher not found" });
     }
@@ -116,6 +119,7 @@ export const deleteDailyRecord = async (req, res, next) => {
       return res.status(404).json({ message: "Daily record not found" });
     }
 
+    // Remove the record from the dailyRecord array
     record.deleteOne();
     await teacher.save();
 
@@ -126,86 +130,36 @@ export const deleteDailyRecord = async (req, res, next) => {
   }
 };
 
+
 // Get daily records
 export const getDailyRecords = async (req, res, next) => {
-  const { userId } = req.body.user;
-
+  console.log('Request Body:', JSON.stringify(req.body, null, 2)); // Log the request body to debug
+  
   try {
-    const teacher = await Teacher.findById(userId);
+    if (!req.body.user || !req.body.user.teacherId) {
+      return res.status(400).json({ message: "User information with teacherId is required" });
+    }
+  const { teacherId } = req.body.user; // Extract teacherId from the request body
+    // Log the teacherId for debugging
+    console.log('Fetching daily records for teacherId:', teacherId);
+
+    // Find the teacher by ID and populate the dailyRecord field
+    const teacher = await Teacher.findById(teacherId);
+    
     if (!teacher) {
       return res.status(404).json({ message: "Teacher not found" });
     }
 
+    // If found, return the daily records associated with this teacher
     res.status(200).json({ success: true, dailyRecords: teacher.dailyRecord });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "An error occurred while fetching daily records" });
   }
 };
 
-// Add
-// export const addAttendanceEntry = async (req, res, next) => {
-//     const { userId } = req.body.user;
-//     const { recordId, attendanceEntry } = req.body;
-  
-//     try {
-//       const teacher = await Teacher.findById(userId);
-//       if (!teacher) {
-//         return res.status(404).json({ message: "Teacher not found" });
-//       }
-  
-//       const record = teacher.dailyRecord.id(recordId);
-//       if (!record) {
-//         return res.status(404).json({ message: "Daily record not found" });
-//       }
-  
-//       record.attendance.push(attendanceEntry);
-//       await teacher.save();
-  
-//       res.status(200).json({ success: true, dailyRecord: record });
-//     } catch (error) {
-//       console.log(error);
-//       res.status(500).json({ message: error.message });
-//     }
-//   };
 
-// --------------------------------------------------------------------------------------------
 
-// export const addAttendanceEntry = async (req, res, next) => {
-//   console.log('Request Body:', req.body); // Log the request body to debug
-
-//   try {
-//     if (!req.body.user) {
-//       return res.status(400).json({ message: "User information is required" });
-//     }
-
-//     const { userId } = req.body.user;
-//     const {  attendanceEntry } = req.body;
-
-//     // if (!userId || !recordId || !attendanceEntry) {
-//       if (!userId || !attendanceEntry) {
-//       return res.status(400).json({ message: "Missing required fields" });
-//     }
-
-//     const teacher = await Teacher.findById(userId);
-//     if (!teacher) {
-//       return res.status(404).json({ message: "Teacher not found" });
-//     }
-
-//     // const record = teacher.dailyRecord.id(recordId);
-//     // if (!record) {
-//     //   return res.status(404).json({ message: "Daily record not found" });
-//     // }
-
-//     record.attendance.push(attendanceEntry);
-//     await teacher.save();
-
-//     res.status(200).json({ success: true, dailyRecord: record });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 
 export const addAttendanceEntry = async (req, res, next) => {
   console.log('Request Body:', JSON.stringify(req.body, null, 2)); // Log the request body to debug
@@ -250,11 +204,11 @@ export const addAttendanceEntry = async (req, res, next) => {
 
   // Update an attendance entry
   export const updateAttendanceEntry = async (req, res, next) => {
-    const { userId } = req.body.user;
+    const { teacherId } = req.body.user;
     const { recordId, rollNo, updateData } = req.body;
   
     try {
-      const teacher = await Teacher.findById(userId);
+      const teacher = await Teacher.findById(teacherId);
       if (!teacher) {
         return res.status(404).json({ message: "Teacher not found" });
       }

@@ -154,7 +154,8 @@ const LecForm = () => {
   };
 
   const handleAttendanceClick = () => {
-    if (!date || !day || !selectedClass || !selectedSubject || !roomNo || !remark||!selectedTimeSlots.length === 0) {
+    if (!date || !day || !selectedClass || !selectedSubject //|| !roomNo || !remark||!selectedTimeSlots.length === 0
+      ) {
       alert('Please fill out all fields before marking attendance.');
       return;
     }
@@ -190,12 +191,12 @@ const LecForm = () => {
   
     setIsLoading(true); // Set loading to true
   
-    // Check if at least one time slot is selected
-    if (selectedTimeSlots.length === 0) {
-      alert("Please select at least one time slot before saving.");
-      setIsLoading(false); // Set loading to false
-      return;
-    }
+    // // Check if at least one time slot is selected
+    // if (selectedTimeSlots.length === 0) {
+    //   alert("Please select at least one time slot before saving.");
+    //   setIsLoading(false); // Set loading to false
+    //   return;
+    // }
   
     try {
       const lecFormData = JSON.parse(sessionStorage.getItem("lecFormData"));
@@ -330,11 +331,11 @@ const LecForm = () => {
 
           <div className="form-group">
             <label htmlFor="roomNo">Room no:</label>
-            <input type="text" id="roomNo" name="roomNo" value={roomNo} onChange={handleRoomNoChange} required />
+            <input type="text" id="roomNo" name="roomNo" value={roomNo} onChange={handleRoomNoChange}  />
           </div>
           <div className="form-group">
             <label htmlFor="remark">Remark:</label>
-            <textarea id="remark" name="remark" rows="2" value={remark} onChange={handleRemarkChange} required />
+            <textarea id="remark" name="remark" rows="2" value={remark} onChange={handleRemarkChange}  />
           </div>
           
           <div className="form-group">

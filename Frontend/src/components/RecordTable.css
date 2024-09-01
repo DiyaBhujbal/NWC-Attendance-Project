@@ -1,0 +1,159 @@
+/* Container */
+.table-container {
+  width: 100%;
+  overflow-x: auto; /* Horizontal scroll */
+  margin: 20px 0;
+  background-color: #f4f8fb; /* Slightly lighter background for contrast */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px; /* Ensure table is wide enough to trigger horizontal scroll */
+  background-color: #ffffff; /* White background */
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Table Headers */
+th, td {
+  padding: 14px 16px;
+  text-align: left;
+  white-space: normal; /* Allow wrapping */
+  overflow-wrap: break-word; /* Break long words */
+  word-wrap: break-word; /* For older browsers */
+}
+
+th {
+  background-color: #0d47a1; /* Darker blue */
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+td {
+  border-bottom: 1px solid #e0e0e0;
+  color: #333;
+  font-size: 16px;
+}
+
+/* Action Buttons */
+.action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  margin-right: 5px;
+  transition: transform 0.2s ease-in-out, background-color 0.2s ease;
+  border-radius: 50%;
+}
+
+.action-btn:hover {
+  transform: scale(1.15);
+  background-color: #f0f0f0; /* Subtle hover background */
+}
+
+.delete-btn i {
+  color: #d32f2f; /* Red for delete */
+}
+
+.edit-btn i {
+  color: #0288d1; /* Lighter blue for edit */
+}
+
+/* Hover Effects */
+tbody tr:hover {
+  background-color: #e3f2fd; /* Very light blue */
+}
+
+/* Filters */
+.filter-container {
+  margin: 20px 0;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.filter-container input,
+.filter-container select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.filter-container input:focus,
+.filter-container select:focus {
+  outline: none;
+  border-color: #1976d2; /* Blue theme */
+  box-shadow: 0 0 5px rgba(25, 118, 210, 0.5); /* Blue shadow */
+}
+
+/* Responsive Styles */
+@media screen and (max-width: 768px) {
+  th, td {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .action-btn {
+    padding: 4px;
+  }
+
+  .filter-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-container input,
+  .filter-container select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: flex-end; /* Aligns the buttons to the right */
+  margin-top: 20px; /* Adds some space above the pagination */
+}
+
+.page-button {
+  margin: 0 5px;
+  padding: 8px 12px;
+  border: 1px solid #ccc; /* Standard button border */
+  background-color: transparent; /* No background color */
+  color: inherit; /* Inherit text color */
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.page-button.active {
+  font-weight: bold; /* Highlight the active page */
+}
+
+.page-button:hover {
+  border-color: #999; /* Slightly darker border on hover */
+}
+
+.page-button:disabled {
+  cursor: not-allowed;
+  color: #ccc;
+}
+
+
+@media screen and (max-width: 480px) {
+  th, td {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .action-btn {
+    padding: 3px;
+  }
+}

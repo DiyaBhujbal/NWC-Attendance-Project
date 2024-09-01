@@ -15,7 +15,10 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             <Link to="/home-page" className="sidebar__link"><i className="fas fa-home"></i> Home</Link>
           </li>
           <li className="sidebar__item" onClick={toggleSidebar}>
-            <Link to="/daily-lec-report" className="sidebar__link"><i className="fas fa-chart-line"></i> Daily Lecture Records</Link>
+            <Link to="/daily-lec-report" className="sidebar__link"><i className="fas fa-chart-line"></i> Daily Lecture/Practical Records</Link>
+          </li>
+          <li className="sidebar__item" onClick={toggleSidebar}>
+            <Link to="/update-daily-lec-report" className="sidebar__link"><i className="fas fa-chart-line"></i>  Lecture/Practical Report</Link>
           </li>
           <li className="sidebar__item" onClick={toggleSidebar}>
             <Link to="/home-page" className="sidebar__link"><i className="fas fa-calendar-alt"></i> Personal Time Table</Link>
