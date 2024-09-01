@@ -15,8 +15,8 @@ const router = express.Router();
 
 // CRUD operations for daily records
 router.post("/add-daily-record", userAuth, addDailyRecord);
-router.put("/update-daily-record", userAuth, updateDailyRecord);
-router.delete("/delete-daily-record", userAuth, deleteDailyRecord);
+router.put("/update-daily-record/:recordId", userAuth, updateDailyRecord);
+router.delete("/delete-daily-record/:recordId", userAuth, deleteDailyRecord);
 router.post("/get-daily-records", userAuth, getDailyRecords);
 
 

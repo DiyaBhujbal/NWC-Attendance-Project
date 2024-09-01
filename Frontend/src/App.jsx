@@ -9,7 +9,9 @@ import AttendanceSheet from './components/AttendanceSheet';
 import { AttendanceProvider } from './components/AttendanceContext';
 import EmailVerificationPage from './components/EmailVerificationPage';
 import ForgotPassword from './components/ForgotPassword';
+import RecordTable from './components/RecordTable'
 import AboutUs from './components/AboutUs';
+import UpdateLecRecordForm from './components/UpdateLecRecordForm';
 
 const App = () => {
   return (
@@ -23,6 +25,8 @@ const App = () => {
         <Route path="/forgot-pass" element={<ForgotPassword />} />
         <Route path="/home-page" element={<Home />} />
         <Route path="/daily-lec-report" element={<LecRecord/>} />
+        <Route path="/update-daily-lec-report" element={<RecordTable/>} />
+        <Route path="/update-daily-lec-report-form" element={<UpdateLecRecordForm/>} />
         <Route path="/attendance-sheet/:classId" element={<AttendanceSheet />} />
         <Route path="/about-us" element={<AboutUs />} />
         {/* Add more routes as needed */}
