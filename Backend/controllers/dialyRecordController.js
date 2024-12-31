@@ -14,7 +14,7 @@ export const addDailyRecord = async (req, res) => {
       return res.status(400).json({ message: "User information is required" });
     }
     const { teacherId} = req.body.user;
-    const {  date, day, time, className, subject, periodNo, roomNo, remark, totalStudentsPresent,attendanceEntry } = req.body;
+    const {  date, day, time, className, subject, periodNo, roomNo, remark, totalStudentstrue,attendanceEntry } = req.body;
     
     
     if (!teacherId ) {
@@ -38,7 +38,7 @@ export const addDailyRecord = async (req, res) => {
       period_number: periodNo,
       room_number: roomNo,
       remark,
-      total_students_present: totalStudentsPresent,
+      total_students_true: totalStudentstrue,
       attendance: attendanceEntry,
     };
 
@@ -289,4 +289,89 @@ export const addAttendanceEntry = async (req, res, next) => {
 
 
 
-  
+export const getDefaulterStudents = async (req, res) => {
+  const { user, className, subject } = req.body;
+
+  if (!user || !user.userId) {
+    return res.status(400).json({ message: "User ID is required" });
+  }
+  if (!className || !subject) {
+    return res.status(400).json({ message: "Class name and subject are required" });
+  }
+
+  const { userId } = user;
+  const ATTENDANCE_THRESHOLD = 100;
+
+  try {
+    // Fetch teacher details
+    const teacher = await Teacher.findById(userId);
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    // Fetch class details
+    const classDetails = await Class.findOne({ name: className });
+    if (!classDetails) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    console.log("Teacher Daily Record:", teacher.dailyRecord);
+
+    // Aggregate attendance records by subject and class
+    const studentAttendance = teacher.dailyRecord
+      .filter((record) => record.className === className && record.subject === subject) // Filter by class and subject
+      .reduce((attendanceMap, record) => {
+        if (record.attendance && Array.isArray(record.attendance)) {
+          record.attendance.forEach(({ roll_no, status }) => {
+            // Initialize attendance data for the student if not already initialized
+            if (!attendanceMap[roll_no]) {
+              attendanceMap[roll_no] = { totalClasses: 0, attendedClasses: 0 };
+            }
+
+            // Increment total classes count (for each daily record session)
+            attendanceMap[roll_no].totalClasses++;
+
+            // Increment attended classes count if the student attended
+            if (status) attendanceMap[roll_no].attendedClasses++;
+          });
+        }
+        return attendanceMap;
+      }, {});
+
+    console.log("Aggregated Student Attendance:", studentAttendance);
+
+    // Calculate total number of classes based on the length of attendance records
+    const totalClasses = teacher.dailyRecord.filter(
+      (record) => record.className === className && record.subject === subject
+    ).length;
+
+    // Map student attendance and calculate attendance percentages
+    const allStudentsAttendance = classDetails.studentsList.map(({ roll_no, student_name }) => {
+      const attendance = studentAttendance[roll_no] || { totalClasses: 0, attendedClasses: 0 };
+      const attendancePercentage = totalClasses
+        ? (attendance.attendedClasses / totalClasses) * 100
+        : 0;
+
+      return {
+        roll_no,
+        student_name,
+        attendancePercentage: attendancePercentage.toFixed(2),
+      };
+    });
+
+    console.log("All Students Attendance:", allStudentsAttendance);
+
+    // Filter defaulters (students with less than 75% attendance)
+    const defaulters = allStudentsAttendance.filter(
+      (student) => student.attendancePercentage < ATTENDANCE_THRESHOLD
+    );
+
+    console.log("Defaulters List:", defaulters);
+
+    // Return defaulters
+    return res.status(200).json({ success: true, defaulters });
+  } catch (error) {
+    console.error("Error fetching defaulters:", error);
+    return res.status(500).json({ message: "Error fetching defaulters", error });
+  }
+};

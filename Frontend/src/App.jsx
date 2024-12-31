@@ -12,7 +12,7 @@ import ForgotPassword from './components/ForgotPassword';
 import RecordTable from './components/RecordTable'
 import AboutUs from './components/AboutUs';
 import UpdateLecRecordForm from './components/UpdateLecRecordForm';
-
+import DefaulterStudents from './components/DefaulterStudents';
 const App = () => {
   return (
     <Router>
@@ -29,6 +29,7 @@ const App = () => {
         <Route path="/update-daily-lec-report-form" element={<UpdateLecRecordForm/>} />
         <Route path="/attendance-sheet/:classId" element={<AttendanceSheet />} />
         <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/defaulters" element={<DefaulterStudents />} />
         {/* Add more routes as needed */}
       </Routes>
       </AttendanceProvider>
