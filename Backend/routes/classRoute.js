@@ -18,7 +18,7 @@ router.get("/get-all-classes", getAllClasses);
 router.get("/get-class/:classId", getClassById);
 router.put("/update-class/:classId", updateClass);
 router.delete("/delete-class/:classId", deleteClass);
-router.get('/:classId/subjects', getSubjectsByClassId); // New route to fetch subjects
+router.get('/:classId/subjects', getSubjectsByClassId); 
 router.get('/:classId/students-list', getStudentsByClassId)
 router.get("/:classId/time-slots", getTimeSlotsByClassId);
 export default router;

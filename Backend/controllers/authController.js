@@ -190,23 +190,22 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // Find the teacher by email
+    
     const teacher = await Teacher.findOne({ email });
 
-    // Check if the teacher exists and if the password is correct
+   
     if (!teacher || !await bcrypt.compare(password, teacher.password)) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
-    // Check if the email is verified
+   
     if (!teacher.isVerified) {
       return res.status(401).json({ success: false, message: 'Email not verified' });
     }
 
-    // Generate JWT token
+
     const token = JWT.sign({ id: teacher._id }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
 
-    // Send the response with the token and user data
     res.status(200).json({
       success: true,
       token,
@@ -244,19 +243,27 @@ export const login = async (req, res) => {
   //---------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-  //get current user
-
+  // Get current user
   export const getCurrentUser = async (req, res) => {
+    console.log('Request Body:', JSON.stringify(req.body, null, 2)); 
+    
     try {
-      if (!req.user || !req.user.id) {
-        return res.status(401).json({ message: 'Unauthorized' });
+     
+      if (!req.body.user || !req.body.user.teacherId) {
+        return res.status(400).json({ message: "User information with teacherId is required" });
       }
   
-      const teacher = await Teacher.findById(req.user.id); // req.user.id should be set by authentication middleware
+      
+      const { teacherId } = req.body.user; 
+      console.log('Fetching teacher data for teacherId:', teacherId); 
+  
+     
+      const teacher = await Teacher.findById(teacherId)
+        .populate('listofsub')  
+        .populate('listofclasses');  
   
       if (!teacher) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: "Teacher not found" });
       }
   
       res.status(200).json({
@@ -265,13 +272,75 @@ export const login = async (req, res) => {
           _id: teacher._id,
           username: teacher.username,
           email: teacher.email,
+          dob: teacher.dob,
+          qualification: teacher.qualification,
+          depname: teacher.depname,
+          joiningdate: teacher.joiningdate,
+          contact:teacher.contact
+          
+        
         },
       });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      console.error('Error fetching teacher info:', error);
+      res.status(500).json({ message: "An error occurred while fetching teacher information" });
     }
   };
-
+  
 
 //---------------------------------------------------------------------------------------------------------------------------------------
 
+export const updateProfile = async (req, res) => {
+  try {
+    const {
+      teacherId,
+      username,
+      email,
+      dob,
+      qualification,
+      depname,
+      joiningdate,
+      contact,
+      
+    } = req.body;
+
+    if (!teacherId) {
+      return res.status(400).json({ message: "Teacher ID is required" });
+    }
+
+    const teacher = await Teacher.findById(teacherId);
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    // Update fields
+    teacher.username = username || teacher.username;
+    teacher.email = email || teacher.email;
+    teacher.dob = dob || teacher.dob;
+    teacher.qualification = qualification || teacher.qualification;
+    teacher.depname = depname || teacher.depname;
+    teacher.joiningdate = joiningdate || teacher.joiningdate;
+    teacher.contact = contact || teacher.contact;
+    
+    const updatedTeacher = await teacher.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        username: updatedTeacher.username,
+        email: updatedTeacher.email,
+        dob: updatedTeacher.dob,
+        qualification: updatedTeacher.qualification,
+        depname: updatedTeacher.depname,
+        joiningdate: updatedTeacher.joiningdate,
+        contact: updatedTeacher.contact,
+        
+      },
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "An error occurred while updating the profile" });
+  }
+};

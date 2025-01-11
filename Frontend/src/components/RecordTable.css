@@ -1,159 +1,142 @@
-/* Container */
-.table-container {
-  width: 100%;
-  overflow-x: auto; /* Horizontal scroll */
-  margin: 20px 0;
-  background-color: #f4f8fb; /* Slightly lighter background for contrast */
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+
+/* Filter Container */
+.filter-container {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
 }
 
-/* Table */
+.filter-container select,
+.filter-container input {
+  padding: 5px;
+  font-size: 14px;
+}
+
+.filter-container button {
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.filter-container button:hover {
+  background-color: #0056b3;
+}
+
+/* Table Styling */
+.table-container {
+  margin: 20px;
+  overflow-x: auto;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px; /* Ensure table is wide enough to trigger horizontal scroll */
-  background-color: #ffffff; /* White background */
-  border-radius: 8px;
-  overflow: hidden;
+  margin-top: 20px;
 }
 
-/* Table Headers */
-th, td {
-  padding: 14px 16px;
+th,
+td {
+  padding: 12px 15px;
   text-align: left;
-  white-space: normal; /* Allow wrapping */
-  overflow-wrap: break-word; /* Break long words */
-  word-wrap: break-word; /* For older browsers */
+  border-bottom: 1px solid #ddd;
 }
 
 th {
-  background-color: #0d47a1; /* Darker blue */
-  color: white;
+  background-color: #f2f2f2;
   font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 td {
-  border-bottom: 1px solid #e0e0e0;
-  color: #333;
-  font-size: 16px;
+  font-size: 14px;
+}
+
+tr:hover {
+  background-color: #f9f9f9;
 }
 
 /* Action Buttons */
 .action-btn {
-  background: none;
-  border: none;
+  padding: 8px;
   cursor: pointer;
-  padding: 6px;
-  margin-right: 5px;
-  transition: transform 0.2s ease-in-out, background-color 0.2s ease;
-  border-radius: 50%;
-}
-
-.action-btn:hover {
-  transform: scale(1.15);
-  background-color: #f0f0f0; /* Subtle hover background */
-}
-
-.delete-btn i {
-  color: #d32f2f; /* Red for delete */
-}
-
-.edit-btn i {
-  color: #0288d1; /* Lighter blue for edit */
-}
-
-/* Hover Effects */
-tbody tr:hover {
-  background-color: #e3f2fd; /* Very light blue */
-}
-
-/* Filters */
-.filter-container {
-  margin: 20px 0;
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.filter-container input,
-.filter-container select {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: none;
   font-size: 16px;
 }
 
-.filter-container input:focus,
-.filter-container select:focus {
-  outline: none;
-  border-color: #1976d2; /* Blue theme */
-  box-shadow: 0 0 5px rgba(25, 118, 210, 0.5); /* Blue shadow */
+.edit-btn {
+  background-color: #007bff;
+  color: white;
+  margin-right: 5px;
 }
 
-/* Responsive Styles */
-@media screen and (max-width: 768px) {
-  th, td {
-    font-size: 14px;
-    padding: 10px;
-  }
-
-  .action-btn {
-    padding: 4px;
-  }
-
-  .filter-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-container input,
-  .filter-container select {
-    width: 100%;
-    margin-bottom: 10px;
-  }
+.edit-btn:hover {
+  background-color: #063a71;
 }
 
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
+
+/* Pagination Styling */
 .pagination {
   display: flex;
-  justify-content: flex-end; /* Aligns the buttons to the right */
-  margin-top: 20px; /* Adds some space above the pagination */
+  justify-content: center;
+  margin: 20px 0;
 }
 
 .page-button {
+  padding: 8px 16px;
   margin: 0 5px;
-  padding: 8px 12px;
-  border: 1px solid #ccc; /* Standard button border */
-  background-color: transparent; /* No background color */
-  color: inherit; /* Inherit text color */
-  border-radius: 4px;
   cursor: pointer;
-}
-
-.page-button.active {
-  font-weight: bold; /* Highlight the active page */
+  background-color: #007bff;
+  color: white;
+  border: none;
 }
 
 .page-button:hover {
-  border-color: #999; /* Slightly darker border on hover */
+  background-color: #0056b3;
 }
 
 .page-button:disabled {
+  background-color: #ccc;
   cursor: not-allowed;
-  color: #ccc;
 }
 
+.page-button.active {
+  background-color: #0056b3;
+  font-weight: bold;
+}
 
-@media screen and (max-width: 480px) {
-  th, td {
-    font-size: 12px;
-    padding: 8px;
-  }
+.page-button:first-child {
+  border-radius: 5px 0 0 5px;
+}
 
-  .action-btn {
-    padding: 3px;
-  }
+.page-button:last-child {
+  border-radius: 0 5px 5px 0;
+}
+
+.lec-container h1 {
+  text-align: center;
+  color: #333;
+  font-weight: bold;
+  margin: 0;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.lec-container img {
+  padding-top: 80px;
+  display: block;
+  margin: 0 auto 20px auto;
+  width: 100px;
 }

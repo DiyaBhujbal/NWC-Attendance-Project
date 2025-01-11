@@ -1,112 +1,236 @@
-Container for the defaulter students section
-.defaulter-container {
+/* General container for filters */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-start; 
+  padding: 20px;
+  background-color: #f8f9fc; 
+  border-radius: 10px;
+  margin-bottom: 30px;
+
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Form group container */
+.filters .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px; 
+}
+
+/* Label styling */
+.filters label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #4a4a4a;
+}
+
+/* Input box styling */
+.filters select,
+.filters input {
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #dcdcdc;
+  border-radius: 5px;
+  background-color: #fff;
+  color: #333;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box; 
+}
+
+/* Hover and focus effect for input boxes */
+.filters select:hover,
+.filters input:hover,
+.filters select:focus,
+.filters input:focus {
+  border-color: #0465ac;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+/* Dropdown styling */
+.filters select {
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="gray" class="bi bi-caret-down-fill" viewBox="0 0 16 16"%3E%3Cpath d="M7.247 11.14 2.451 5.658c-.57-.696.026-1.658.94-1.658h9.218c.914 0 1.509.962.94 1.658L8.753 11.14a1 1 0 0 1-1.506 0z"/%3E%3C/svg%3E');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+  padding-right: 40px;
+}
+
+/* Apply Filter and Download buttons */
+.apply-filter-btn,
+.download-btn {
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #0465ac;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin: 10px auto;
+  display: block;
+  max-width: 200px;
+  text-align: center;
+}
+
+.apply-filter-btn:hover,
+.download-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Error message styling */
+.error-message {
+  background-color: #ffebee;
+  color: #d32f2f;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  overflow: hidden; 
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+table th,
+table td {
+  padding: 12px 15px;
+  text-align: left;
+  border: 1px solid #e0e0e0;
+  font-size: 14px;
+}
+
+table th {
+  background-color: #0465ac;
+  color: #fff;
+  font-weight: bold;
+}
+
+table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+table tr:hover {
+  background-color: #f1f1f1;
+  cursor: default;
+}
+
+/* Defaulter Container Heading */
+.defaulter-container h1 {
+  text-align: center;
+  color: #333;
+  font-weight: bold;
+  margin: 0;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.defaulter-container img {
+  padding-top: 80px;
+  display: block;
+  margin: 0 auto 20px auto;
+  width: 100px;
+}
+
+/* Print-specific styles */
+@media print {
+  .no-print {
+    display: none;
+  }
+
+  body {
+    background-color: #fff;
+  }
+
+  table th,
+  table td {
+    font-size: 12px;
+    padding: 8px;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .filters {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .filters .form-group {
     width: 100%;
-    padding: 20px;
-    margin-top: 20px;
-    background-color: #f4f6f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
-  
-  /* Title of the defaulter students section */
-  .defaulter-container h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #333;
+
+  table th,
+  table td {
+    font-size: 12px;
+    padding: 8px;
   }
-  
-  /* Table containing the defaulter students data */
-  .defaulter-table {
+
+
+  .download-btn {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
+    max-width: none;
   }
-  
-  /* Table header styling */
-  .defaulter-table thead {
-    background-color: #007bff;
-    color: white;
+}
+
+/* Apply Filter button styling */
+.apply-filter-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #0465ac;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  align-self: center; 
+  margin: 0; 
+}
+
+.apply-filter-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Adjust filters layout to accommodate the Apply Filter button */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  align-items: center; /* Align items vertically */
+  padding: 20px;
+  background-color: #f8f9fc;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Add responsiveness for smaller screens */
+@media (max-width: 768px) {
+  .filters {
+    flex-direction: column;
+    gap: 15px;
   }
-  
-  .defaulter-table th {
-    padding: 12px;
-    text-align: left;
-    font-size: 16px;
-    font-weight: 600;
+
+  .apply-filter-btn {
+    width: 100%; /* Full width on mobile */
+    max-width: none;
   }
-  
-  /* Table body styling */
-  .defaulter-table tbody {
-    background-color: #ffffff;
-  }
-  
-  .defaulter-table td {
-    padding: 12px;
-    font-size: 14px;
-    text-align: left;
-    color: #555;
-  }
-  
-  /* Row styling on hover */
-  .defaulter-table tr:hover {
-    background-color: #f1f1f1;
-  }
-  
-  /* Highlight defaulters with low attendance percentage */
-  .defaulter-table .defaulter-row {
-    background-color: #fce5e5;
-  }
-  
-  .defaulter-table .defaulter-row td {
-    color: #d9534f;
-  }
-  
-  /* Defaulter student name styling */
-  .defaulter-table .defaulter-name {
-    font-weight: bold;
-    color: #333;
-  }
-  
-  /* Defaulter attendance percentage styling */
-  .defaulter-table .defaulter-attendance {
-    font-weight: bold;
-    color: #d9534f;
-  }
-  
-  /* Action buttons for defaulter students */
-  .action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  
-  .action-buttons button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-  }
-  
-  .action-buttons button:hover {
-    background-color: #0056b3;
-  }
-  
-  .action-buttons button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-  
-  /* No defaulter message */
-  .no-defaulter-message {
-    font-size: 16px;
-    color: #6c757d;
-    text-align: center;
-    margin-top: 20px;
-  }
-  
+}

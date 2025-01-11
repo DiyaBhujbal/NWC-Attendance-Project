@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './Sidebar.css'; // Adjust the path if needed
-
+import './Sidebar.css'; 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   return (
     <div className={`sidebar ${isSidebarOpen ? 'sidebar--open' : ''}`}>

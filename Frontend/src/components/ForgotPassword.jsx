@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './ForgotPassword.css';
 import { CollegeImage, CollegeLogo } from '../assets';
-import Popup from './popup'; // Ensure the Popup component exists
+import Popup from './popup'; 
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');

@@ -9,7 +9,7 @@ const Schema = mongoose.Schema;
 const classSchema = new Schema({
     name: { type: String, required: true },
     subjects: [{ type: String, required: true }],
-    timeSlot: [{ type: String, required: true }], // Ensure this field is present
+    timeSlot: [{ type: String, required: true }], 
     totalStudents: { type: Number, required: true },
     studentsList:[
       {

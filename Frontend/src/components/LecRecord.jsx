@@ -6,6 +6,7 @@ import Sidebar from './Sidebar';
 import axios from 'axios';
 
 const LecForm = () => {
+  const [selectedYear, setSelectedYear] = useState("");
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [date, setDate] = useState('');
   const [day, setDay] = useState('');
@@ -18,7 +19,10 @@ const LecForm = () => {
   const [periodNo, setPeriodNo] = useState('');
   const [roomNo, setRoomNo] = useState('');
   const [remark, setRemark] = useState('');
+  const [note, setNote] = useState('');
+  const [academicyear, setAcademicyear] = useState('');
   const [totalStudents, setTotalStudents] = useState('');
+  const currentYear = new Date().getFullYear();
   const navigate = useNavigate();
   const [selectedClassName, setSelectedClassName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +36,7 @@ const LecForm = () => {
     if (!token) {
       alert("Your session has expired. Please log in again.");
       sessionStorage.clear();
-      navigate('/teacher-login'); // Redirect to login page
+      navigate('/teacher-login'); 
       return;
     }
 
@@ -49,6 +53,9 @@ const LecForm = () => {
       setTotalStudents(savedFormData.totalStudents || '');
       setSelectedClassName(savedFormData.selectedClassName || '');
       setSelectedTimeSlots(savedFormData.selectedTimeSlots || []);
+      setNote(savedFormData.note || []);
+      setAcademicyear(savedFormData.academicyear || []);
+      
     }
   }, []);
 
@@ -142,6 +149,13 @@ const LecForm = () => {
     setRemark(event.target.value);
   };
 
+  const handleNoteChange = (event) => {
+    setNote(event.target.value);
+  };
+
+  const handleAcademicyearChange = (event) => {
+    setAcademicyear(event.target.value);
+  };
   const handleTotalStudentsChange = (event) => {
     setTotalStudents(event.target.value);
   };
@@ -171,6 +185,8 @@ const LecForm = () => {
       roomNo,
       remark,
       totalStudents,
+      note,
+      academicyear,
       selectedTimeSlots, // Store selected time slots
     };
     sessionStorage.setItem("lecFormData", JSON.stringify(lecFormData));
@@ -261,6 +277,8 @@ const LecForm = () => {
         alert("Daily record saved successfully");
         sessionStorage.removeItem("attendance");
         sessionStorage.removeItem("lecFormData");
+
+        navigate('/update-daily-lec-report');
       } else {
         console.error("Failed to save daily record:", saveResponse.data.message);
       }
@@ -271,6 +289,20 @@ const LecForm = () => {
     }
   };
   
+  // Generate academic years, e.g., 2024-2025
+  const generateAcademicYears = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = currentYear - 5; i <= currentYear + 10; i++) {
+      years.push(`${i}-${i + 1}`);
+    }
+    return years;
+  };
+
+  const academicYears = generateAcademicYears(currentYear, 10); // Adjust the count as needed
+
+ 
+
   return (
     <div>
       <Navbar toggleSidebar={toggleSidebar} />
@@ -321,7 +353,8 @@ const LecForm = () => {
                     id={`time-slot-${index}`}
                     value={slot}
                     checked={selectedTimeSlots.includes(slot)}
-                    onChange={handleTimeSlotChange}
+                     onChange={handleTimeSlotChange}
+                     
                   />
                   <label htmlFor={`time-slot-${index}`}>{slot}</label>
                 </div>
@@ -330,13 +363,60 @@ const LecForm = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="roomNo">Room no:</label>
-            <input type="text" id="roomNo" name="roomNo" value={roomNo} onChange={handleRoomNoChange}  />
+            <label htmlFor="roomNo">Room Number:</label>
+            <input
+              type="text"
+              id="roomNo"
+              name="roomNo"
+              value={roomNo}
+              onChange={handleRoomNoChange}
+             
+            />
           </div>
+
           <div className="form-group">
             <label htmlFor="remark">Remark:</label>
-            <textarea id="remark" name="remark" rows="2" value={remark} onChange={handleRemarkChange}  />
+            <textarea
+              id="remark"
+              name="remark"
+              value={remark}
+              onChange={handleRemarkChange}
+              
+            />
           </div>
+
+          <div className="form-group">
+            <label htmlFor="note">Note:</label>
+            <textarea
+              id="note"
+              name="note"
+              value={note}
+              onChange={handleNoteChange}
+              
+            />
+          </div>
+
+          <div className="form-group">
+      <label htmlFor="academicyear">Academic Year:</label>
+      <select
+        id="academicyear"
+        name="academicyear"
+        value={academicyear}
+        onChange={handleAcademicyearChange}
+        required
+        className="form-control"
+      >
+        <option value="">Select Academic Year</option>
+        {academicYears.map((year) => (
+          <option key={year} value={year}>
+            {year}
+          </option>
+        ))}
+      </select>
+    </div>
+
+
+          
           
           <div className="form-group">
             <button type="button" className="mark-attendance-button" onClick={handleAttendanceClick}>Mark Attendance</button>

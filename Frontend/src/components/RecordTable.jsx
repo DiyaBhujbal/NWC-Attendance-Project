@@ -4,14 +4,22 @@ import axios from 'axios';
 import './RecordTable.css';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { CollegeLogo } from '../assets';
 
 const RecordTable = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [dailyRecords, setDailyRecords] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [academicYears, setAcademicYears] = useState([]);
   const [filterMonth, setFilterMonth] = useState('');
+  const [filterAcademicYear, setFilterAcademicYear] = useState('');
+  const [filterDate, setFilterDate] = useState('');
   const [filterClass, setFilterClass] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 5;
+  const recordsPerPage = 25;
   const navigate = useNavigate();
 
   const toggleSidebar = () => {
@@ -22,8 +30,12 @@ const RecordTable = () => {
     if (!token) return null;
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) =>
-      `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`).join(''));
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join('')
+    );
     return JSON.parse(jsonPayload);
   };
 
@@ -32,7 +44,7 @@ const RecordTable = () => {
     const user = JSON.parse(sessionStorage.getItem('user'));
 
     if (!token || !user) {
-      alert("Your session has expired. Please log in again.");
+      alert('Your session has expired. Please log in again.');
       sessionStorage.clear();
       navigate('/teacher-login');
       return;
@@ -45,17 +57,23 @@ const RecordTable = () => {
 
         const response = await axios.post(
           'http://localhost:5000/api-v1/daily-record/get-daily-records',
-          { user: { teacherId }},
+          { user: { teacherId } },
           {
             headers: {
               Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
+              'Content-Type': 'application/json',
+            },
           }
         );
 
         if (response.data.success) {
           setDailyRecords(response.data.dailyRecords);
+
+          // Extract unique academic years
+          const years = Array.from(
+            new Set(response.data.dailyRecords.map((record) => record.academicyear))
+          ).sort();
+          setAcademicYears(years);
         } else {
           console.error('Failed to fetch daily records:', response.data.message);
         }
@@ -64,7 +82,21 @@ const RecordTable = () => {
       }
     };
 
+    const fetchClasses = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api-v1/class/get-all-classes');
+        if (response.data.success && Array.isArray(response.data.classes)) {
+          setClasses(response.data.classes);
+        } else {
+          console.error('Fetched classes is not an array:', response.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch classes:', error);
+      }
+    };
+
     fetchDailyRecords();
+    fetchClasses();
   }, [navigate]);
 
   const handleEditClick = (record) => {
@@ -74,14 +106,14 @@ const RecordTable = () => {
   };
 
   const handleDeleteClick = async (recordId) => {
-    const confirmed = window.confirm("Are you sure you want to delete this record?");
-    
+    const confirmed = window.confirm('Are you sure you want to delete this record?');
+
     if (!confirmed) {
       return;
     }
     const token = sessionStorage.getItem('token');
     const user = JSON.parse(sessionStorage.getItem('user'));
-    
+
     const teacherId = user._id;
 
     try {
@@ -90,17 +122,19 @@ const RecordTable = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
           data: {
-           user: { teacherId },
-           recordId: recordId
-          }
+            user: { teacherId },
+            recordId: recordId,
+          },
         }
       );
 
       if (response.data.success) {
-        setDailyRecords((prevRecords) => prevRecords.filter((record) => record._id !== recordId));
+        setDailyRecords((prevRecords) =>
+          prevRecords.filter((record) => record._id !== recordId)
+        );
         alert('Record deleted successfully');
       } else {
         console.error('Failed to delete record:', response.data.message);
@@ -114,12 +148,16 @@ const RecordTable = () => {
     setFilterMonth(e.target.value);
   };
 
-  const handleClassChange = (e) => {
-    setFilterClass(e.target.value);
+  const handleAcademicYearChange = (e) => {
+    setFilterAcademicYear(e.target.value);
   };
 
-  const normalizeClassName = (className) => {
-    return className.toLowerCase().replace(/[\W_]+/g, '');
+  const handleDateChange = (e) => {
+    setFilterDate(e.target.value);
+  };
+
+  const handleClassChange = (e) => {
+    setFilterClass(e.target.value);
   };
 
   const formatDateForInput = (dateString) => {
@@ -128,11 +166,23 @@ const RecordTable = () => {
     return date.toISOString().split('T')[0];
   };
 
-  const filteredRecords = dailyRecords.filter((record) => {
-    const monthMatch = filterMonth ? new Date(record.date).toISOString().slice(0, 7) === filterMonth : true;
-    const classMatch = filterClass ? normalizeClassName(record.className).includes(normalizeClassName(filterClass)) : true;
-    return monthMatch && classMatch;
-  });
+  const filteredRecords = dailyRecords
+    .slice()
+    .reverse()
+    .filter((record) => {
+      const monthMatch = filterMonth
+        ? new Date(record.date).toISOString().slice(0, 7) === filterMonth
+        : true;
+      const academicYearMatch = filterAcademicYear
+        ? record.academicyear === filterAcademicYear
+        : true;
+      const dateMatch = filterDate
+        ? formatDateForInput(record.date) === filterDate
+        : true;
+      const classMatch = filterClass ? record.className === filterClass : true;
+
+      return monthMatch && academicYearMatch && dateMatch && classMatch;
+    });
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
@@ -144,13 +194,72 @@ const RecordTable = () => {
     setCurrentPage(pageNumber);
   };
 
+ 
+
+// Function to download the table as a PDF
+const downloadPDF = () => {
+  const content = document.getElementById('lec-report');  
+
+  html2canvas(content).then((canvas) => {
+    const imgData = canvas.toDataURL('image/png');  
+    const pdf = new jsPDF();
+    const imgWidth = 190;
+    const pageHeight = 285;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // Add image data to the PDF
+    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    pdf.save('Lecture_Records.pdf');  // Save the generated PDF
+  });
+};
+
+
+// Helper function to generate the filters text
+const generateFilterText = () => {
+  let filterText = '';
+  if (filterAcademicYear) filterText += `Academic Year: ${filterAcademicYear}\n`;
+  if (filterMonth) filterText += `Month: ${filterMonth}\n`;
+  if (filterDate) filterText += `Date: ${filterDate}\n`;
+  if (filterClass) filterText += `Class: ${filterClass}\n`;
+  return filterText;
+};
+
+
+
+
   return (
     <div>
       <Navbar toggleSidebar={toggleSidebar} />
-      <h2>Update Lecture Records</h2>
       <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <div className="lec-container" id="lec-report">
+              <img src={CollegeLogo} alt="College Logo" className="college-logo" />
+              <h3>Modern Education Society’s Nowrosjee Wadia College, Pune</h3>
+      
+              <h3><strong>Lecture Report</strong></h3>
+      
+
+
 
       <div className="filter-container">
+        <select value={filterAcademicYear} onChange={handleAcademicYearChange}>
+          <option value="">All Academic Years</option>
+          {academicYears.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
         <input
           type="month"
           value={filterMonth}
@@ -158,17 +267,28 @@ const RecordTable = () => {
           placeholder="Filter by Month"
         />
         <input
-          type="text"
-          value={filterClass}
-          onChange={handleClassChange}
-          placeholder="Filter by Class"
+          type="date"
+          value={filterDate}
+          onChange={handleDateChange}
+          placeholder="Filter by Date"
         />
+        <select value={filterClass} onChange={handleClassChange}>
+          <option value="">All Classes</option>
+          {classes.map((cls) => (
+            <option key={cls._id} value={cls.name}>
+              {cls.name}
+            </option>
+          ))}
+        </select>
+        <button onClick={downloadPDF}>Download as PDF</button>
       </div>
 
       <div className="table-container">
         <table>
           <thead>
             <tr>
+              <th>ID</th>
+              <th>Academic Year</th>
               <th>Day</th>
               <th>Date</th>
               <th>Time</th>
@@ -176,6 +296,7 @@ const RecordTable = () => {
               <th>Subject</th>
               <th>Room No</th>
               <th>Remark</th>
+              <th>Note</th>
               <th>Attendance Count</th>
               <th>Action</th>
             </tr>
@@ -184,6 +305,8 @@ const RecordTable = () => {
             {currentRecords.length > 0 ? (
               currentRecords.map((record, index) => (
                 <tr key={index}>
+                  <td>{record.id}</td>
+                  <td>{record.academicyear}</td>
                   <td>{record.day}</td>
                   <td>{formatDateForInput(record.date)}</td>
                   <td>{record.time.join(', ')}</td>
@@ -191,12 +314,19 @@ const RecordTable = () => {
                   <td>{record.subject}</td>
                   <td>{record.room_number}</td>
                   <td>{record.remark}</td>
+                  <td>{record.note}</td>
                   <td>{record.attendance.length}</td>
                   <td>
-                    <button className="action-btn edit-btn" onClick={() => handleEditClick(record)}>
+                    <button
+                      className="action-btn edit-btn"
+                      onClick={() => handleEditClick(record)}
+                    >
                       <i className="fa fa-pencil"></i>
                     </button>
-                    <button className="action-btn delete-btn" onClick={() => handleDeleteClick(record._id)}>
+                    <button
+                      className="action-btn delete-btn"
+                      onClick={() => handleDeleteClick(record._id)}
+                    >
                       <i className="fa fa-trash"></i>
                     </button>
                   </td>
@@ -204,7 +334,7 @@ const RecordTable = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="9">No records found.</td>
+                <td colSpan="12">No records found.</td>
               </tr>
             )}
           </tbody>
@@ -236,7 +366,7 @@ const RecordTable = () => {
           Last »
         </button>
       </div>
-    </div>
+    </div></div>
   );
 };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import axios from 'axios';
-import './Navbar.css'; // Adjust the path if needed
+import './Navbar.css'; 
 import { useNavigate } from 'react-router-dom';
 const Navbar = ({ toggleSidebar}) => {
  

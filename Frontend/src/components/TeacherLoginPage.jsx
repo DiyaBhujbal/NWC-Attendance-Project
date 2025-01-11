@@ -16,33 +16,33 @@ const TeacherLoginPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if there's already a token in session storage
+   
     const token = sessionStorage.getItem('token');
     if (token) {
-      // Prompt user to log out before logging in again
+      
       if (window.confirm("Logging out..")) {
-        sessionStorage.clear(); // Clear session storage
+        sessionStorage.clear(); 
         navigate('/teacher-login');
       } else {
-        navigate('/home-page'); // Redirect to home page if user does not want to log out
+        navigate('/home-page'); 
       }
     }
   }, [navigate]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsLoading(true); // Set loading to true
+    setIsLoading(true); 
   
     try {
       const response = await axios.post('http://localhost:5000/api-v1/auth/login', { email, password });
   
       if (response.data.success) {
         const { token, user } = response.data;
-        sessionStorage.clear(); // Clear all previous session data
-        sessionStorage.setItem('token', token); // Save token to session storage
-        sessionStorage.setItem('user', JSON.stringify(user)); // Save user details to session storage
+        sessionStorage.clear();
+        sessionStorage.setItem('token', token); 
+        sessionStorage.setItem('user', JSON.stringify(user)); 
         console.log("Token and user saved to session storage:", token, user);
-        setShowPopup(true); // Show the popup on successful login
+        setShowPopup(true); 
       } else {
         setError(response.data.message || 'An error occurred during login');
       }
@@ -50,12 +50,12 @@ const TeacherLoginPage = () => {
       console.error('Login failed', err);
       setError(err.response?.data.message || 'An error occurred during login');
     } finally {
-      setIsLoading(false); // Set loading to false once done
+      setIsLoading(false); 
     }
   };
   
   const handleResendVerification = async () => {
-    setIsResending(true); // Set resend loading to true
+    setIsResending(true); 
     
     try {
       const response = await axios.post('http://localhost:5000/api-v1/auth/resend-verify-email', { email });
@@ -67,7 +67,7 @@ const TeacherLoginPage = () => {
       console.error('Resend verification failed', err);
       setError(err.response?.data.message || 'An error occurred while resending the verification email');
     } finally {
-      setIsResending(false); // Set resend loading to false once done
+      setIsResending(false); 
     }
   };
   
@@ -77,7 +77,7 @@ const TeacherLoginPage = () => {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    navigate('/home-page'); // Redirect after closing the popup
+    navigate('/home-page'); 
   };
 
   return (
@@ -135,7 +135,7 @@ const TeacherLoginPage = () => {
                 type="button"
                 onClick={handleResendVerification}
                 className="resend-button"
-                disabled={isResending} // Disable button while loading
+                disabled={isResending} 
               >
                 {isResending ? 'Sending...' : 'Verify your account'}
               </button>

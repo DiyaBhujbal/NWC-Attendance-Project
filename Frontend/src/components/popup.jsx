@@ -1,4 +1,4 @@
-// Popup.jsx
+
 import React from 'react';
 import './poppup.css';
 

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import './TeacherRegistrationPage.css';
 import { CollegeImage, CollegeLogo } from '../assets';
 import Popup from './popup';
-import axios from 'axios'; // Import Axios
+import axios from 'axios'; 
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -31,18 +31,18 @@ const TeacherRegisterPage = () => {
       return;
     }
   
-    setIsLoading(true); // Set loading to true
+    setIsLoading(true); 
   
     try {
       const response = await axios.post('http://localhost:5000/api-v1/auth/register', { username, email, password });
       
       if (response.data.success) {
-        setShowPopup(true); // Show the popup on successful registration
+        setShowPopup(true); 
       }
     } catch (err) {
       setError(err.response?.data.message || 'An error occurred during registration');
     } finally {
-      setIsLoading(false); // Set loading to false once done
+      setIsLoading(false);
     }
   };
   
@@ -57,7 +57,7 @@ const TeacherRegisterPage = () => {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    window.location.href = '/teacher-login'; // Redirect after closing the popup
+    window.location.href = '/teacher-login'; 
   };
 
   return (

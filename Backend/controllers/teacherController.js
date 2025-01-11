@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 import Teacher from "../models/teacher.js";
-import OTP from '../models/otp.js'; // Model to store OTPs
-import crypto from 'crypto'; // For ES Modules
-import { sendEmail } from "../utils/sendEmail.js"; // Utility function for sending emails
+import OTP from '../models/otp.js'; 
+import crypto from 'crypto'; 
+import { sendEmail } from "../utils/sendEmail.js"; 
 import bcrypt from 'bcryptjs';
 
 
-// Endpoint to request password reset (generate OTP)
+
 export const requestPasswordReset = async (req, res) => {
   const { email } = req.body;
 

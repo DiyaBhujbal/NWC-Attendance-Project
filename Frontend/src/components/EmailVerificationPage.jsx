@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import './EmailVerificationPage.css'; // Ensure this file is styled accordingly
+import './EmailVerificationPage.css'; 
 
 const EmailVerificationPage = () => {
   const [searchParams] = useSearchParams();

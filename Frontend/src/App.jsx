@@ -30,6 +30,8 @@ const App = () => {
         <Route path="/attendance-sheet/:classId" element={<AttendanceSheet />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/defaulters" element={<DefaulterStudents />} />
+        <Route path="/update-daily-lec-report-form/:recordId" element={<UpdateLecRecordForm />} />
+
         {/* Add more routes as needed */}
       </Routes>
       </AttendanceProvider>
