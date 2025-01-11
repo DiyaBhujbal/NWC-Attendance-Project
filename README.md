@@ -21,12 +21,12 @@ npm i @fortawesome/fontawesome-free autoprefixer axios dotenv express file-serve
 
 ---Dependencies required for Frontend---
 
-npm i @fortawesome/fontawesome-free autoprefixer axios dotenv express file-server jsonwebtoken jwr-decode postcss react react-dom react-router-dom react-spreadsheet react-time-picker tailwindcss 
+npm i @fortawesome/fontawesome-free autoprefixer axios dotenv express file-server html2canvas html2pdf.js jsonwebtoken jspdf jspdf-autotable jwr-decode postcss react react-dom react-router-dom react-spreadsheet react-time-picker tailwindcss xlsx
 
 
 ---Dependencies required for Backend---
 
-npm i bcryptjs cors crypto crypto-js dotenv express express-mongo-sanitize express-rate-limit express-session handlebars jsonwebtoken jwt-decode mongo-sanitize mongoose nodemailer nodemon validator 
+npm i bcryptjs cors crypto crypto-js dotenv express express-mongo-sanitize express-rate-limit express-session handlebars jsonwebtoken jwt-decode mongo-sanitize mongoose mongoose-sequence nodemailer nodemon validator handlebars html2canvas jspdf
 
 
 ## In your backend create a .env file with the following content:
